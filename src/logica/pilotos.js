@@ -44,6 +44,9 @@ export function conducir(piloto, k, pista, dt) {
   };
 }
 
+// En las curvas, el modo ayuda va un poco más rápido que los rivales para que la jugadora menor pueda adelantarlos.
+const AYUDA_EXTRA = 1.05;
+
 // Modo ayuda: acelera solo y, cerca del borde, la dirección se corrige hacia el centro.
 // Mira dónde estará el kart en medio segundo, para corregir antes de que se vaya de lado.
 export function ayudar(int, k, pista) {
@@ -51,7 +54,7 @@ export function ayudar(int, k, pista) {
   const previsto = k.lateral + k.vel * Math.sin(diferenciaAngular(m.rumbo, k.rumbo)) * 0.5;
   const cerca = Math.max(Math.abs(k.lateral), Math.abs(previsto));
   const peso = Math.min(1, Math.max(0, (cerca - 2.5) / 3));
-  const prudente = velocidadPrudente(pista, k.s) * KART.velMax * (k.factor ?? 1);
+  const prudente = velocidadPrudente(pista, k.s) * KART.velMax * (k.factor ?? 1) * AYUDA_EXTRA;
   return {
     giro: limitar(int.giro * (1 - peso) + haciaAdelante(k, pista, 0) * peso),
     acelera: !int.frena && k.vel < prudente,

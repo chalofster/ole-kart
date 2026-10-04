@@ -83,6 +83,27 @@ describe('impulso para quien va atrás', () => {
   });
 });
 
+describe('equilibrio del modo ayuda', () => {
+  it('con ayuda y solo acelerando, los niños a veces quedan entre los primeros', () => {
+    const puestos = [];
+    for (let semilla = 1; semilla <= 10; semilla++) {
+      const azar = azarConSemilla(semilla);
+      const c = crearCarrera(pista, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [6, 7], azar);
+      const pilotos = c.karts.map(() => crearPiloto(azar));
+      while (c.estado !== 'fin' && c.tiempo < 400) {
+        const intenciones = c.karts.map((k, i) => {
+          if (c.estado !== 'carrera') return QUIETO;
+          return k.humano && !k.termino ? ayudar({ ...QUIETO, acelera: true }, k, pista) : conducir(pilotos[i], k, pista, dt);
+        });
+        pasoCarrera(c, intenciones, dt);
+      }
+      puestos.push(...c.karts.filter((k) => k.humano).map((k) => k.puesto));
+    }
+    expect(puestos.reduce((a, b) => a + b, 0) / puestos.length).toBeLessThanOrEqual(6.2);
+    expect(Math.min(...puestos)).toBeLessThanOrEqual(4);
+  });
+});
+
 describe('adelantar', () => {
   it('un rival más rápido que alcanza a otro en su mismo carril lo pasa, sin quedar pegado', () => {
     const c = crearCarrera(pista, ['lento', 'rapido'], [], azarConSemilla(5));
