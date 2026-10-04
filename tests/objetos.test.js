@@ -156,3 +156,92 @@ describe('ají y bola disco', () => {
     expect(k.disco).toBe(0);
   });
 });
+
+describe('calabaza rodante', () => {
+  it('rueda por la pista y golpea al primer kart de su línea, no al de otra línea ni a su dueño', () => {
+    const estado = crearObjetos(pista);
+    const lanzador = kartEn(100, 0, { objeto: 'calabaza' });
+    const blanco = kartEn(125, 0);
+    const lejos = kartEn(115, 5);
+    expect(usarObjeto(estado, lanzador, pista, 1)).toContain('calabaza');
+    expect(estado.calabazas).toHaveLength(1);
+    expect(estado.calabazas[0].vel).toBeCloseTo(OBJ.calabazaVel * KART.velMax, 9);
+    avanzar(estado, [lanzador, blanco, lejos], 1.5);
+    expect(blanco.trompo).toBeGreaterThan(0);
+    expect(lejos.trompo).toBe(0);
+    expect(lanzador.trompo).toBe(0);
+    expect(estado.calabazas).toHaveLength(0);
+  });
+
+  it('va más rápido con la velocidad 🚀', () => {
+    const estado = crearObjetos(pista);
+    usarObjeto(estado, kartEn(100, 0, { objeto: 'calabaza' }), pista, 1.5);
+    expect(estado.calabazas[0].vel).toBeCloseTo(OBJ.calabazaVel * KART.velMax * 1.5, 9);
+  });
+
+  it('lanzada justo antes de la meta, la cruza y golpea al otro lado', () => {
+    const estado = crearObjetos(pista);
+    const lanzador = kartEn(pista.largo - 6, 0, { objeto: 'calabaza' });
+    const blanco = kartEn(12, 0);
+    usarObjeto(estado, lanzador, pista, 1);
+    const eventos = avanzar(estado, [lanzador, blanco], 1.5);
+    expect(eventos[1]).toContain('golpe');
+  });
+
+  it('si no toca a nadie desaparece a los 6 s; un kart en el aire no la toca', () => {
+    const estado = crearObjetos(pista);
+    usarObjeto(estado, kartEn(100, 0, { objeto: 'calabaza' }), pista, 1);
+    const enAire = kartEn(110, 0, { enAire: true, h: 2 });
+    avanzar(estado, [enAire], 1);
+    expect(enAire.trompo).toBe(0);
+    expect(estado.calabazas).toHaveLength(1);
+    avanzar(estado, [], OBJ.calabazaVida);
+    expect(estado.calabazas).toHaveLength(0);
+  });
+});
+
+describe('cáscara de plátano', () => {
+  it('queda detrás del kart y hace girar a quien la pisa', () => {
+    const estado = crearObjetos(pista);
+    const dueno = kartEn(200, 0, { objeto: 'cascara' });
+    expect(usarObjeto(estado, dueno, pista, 1)).toContain('cascara');
+    const c = estado.cascaras[0];
+    expect(Math.hypot(c.x - dueno.x, c.y - dueno.y)).toBeCloseTo(OBJ.cascaraAtras, 0);
+    const otro = kartEn(200, 0);
+    Object.assign(otro, { x: c.x, y: c.y });
+    avanzar(estado, [otro], dt);
+    expect(otro.trompo).toBeGreaterThan(0);
+    expect(estado.cascaras).toHaveLength(0);
+  });
+
+  it('su dueño la puede pisar recién pasado 1 s', () => {
+    const estado = crearObjetos(pista);
+    const dueno = kartEn(200, 0, { objeto: 'cascara' });
+    usarObjeto(estado, dueno, pista, 1);
+    Object.assign(dueno, { x: estado.cascaras[0].x, y: estado.cascaras[0].y });
+    avanzar(estado, [dueno], 0.5);
+    expect(dueno.trompo).toBe(0);
+    avanzar(estado, [dueno], 0.6);
+    expect(dueno.trompo).toBeGreaterThan(0);
+  });
+
+  it('no golpea a un kart en el aire, que la deja en su lugar', () => {
+    const estado = crearObjetos(pista);
+    usarObjeto(estado, kartEn(200, 0, { objeto: 'cascara' }), pista, 1);
+    const enAire = kartEn(200, 0, { enAire: true, h: 2 });
+    Object.assign(enAire, { x: estado.cascaras[0].x, y: estado.cascaras[0].y });
+    avanzar(estado, [enAire], dt);
+    expect(enAire.trompo).toBe(0);
+    expect(estado.cascaras).toHaveLength(1);
+  });
+
+  it('hay como máximo 10: al dejar otra, desaparece la más antigua', () => {
+    const estado = crearObjetos(pista);
+    const k = kartEn(200, 0);
+    for (let i = 0; i < 12; i++) {
+      k.objeto = 'cascara';
+      usarObjeto(estado, k, pista, 1);
+    }
+    expect(estado.cascaras).toHaveLength(OBJ.maxCascaras);
+  });
+});

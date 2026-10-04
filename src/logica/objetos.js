@@ -1,4 +1,4 @@
-import { puntoEn } from './pista.js';
+import { puntoEn, MEDIO_ANCHO } from './pista.js';
 import { KART } from './kart.js';
 
 // Objetos originales de Olé Kart. Duraciones en segundos.
@@ -61,6 +61,20 @@ export function usarObjeto(estado, k, pista, clase, eventos = []) {
   } else if (tipo === 'disco') {
     k.disco = OBJ.disco;
     eventos.push('disco');
+  } else if (tipo === 'calabaza') {
+    // Sale delante del kart, dentro del camino, y rueda a 1,4 veces la velocidad máxima de la carrera.
+    const s = k.s + KART.radio * 2 + 0.5;
+    const lateral = Math.max(-MEDIO_ANCHO + 1, Math.min(MEDIO_ANCHO - 1, k.lateral));
+    const p = puntoEn(pista, s, lateral);
+    estado.calabazas.push({
+      s, lateral, x: p.x, y: p.y, vel: OBJ.calabazaVel * KART.velMax * clase, vida: OBJ.calabazaVida, dueno: k,
+    });
+    eventos.push('calabaza');
+  } else if (tipo === 'cascara') {
+    const p = puntoEn(pista, k.s - OBJ.cascaraAtras, k.lateral);
+    estado.cascaras.push({ x: p.x, y: p.y, dueno: k, espera: OBJ.cascaraDueno, fuera: false });
+    if (estado.cascaras.length > OBJ.maxCascaras) estado.cascaras.shift();
+    eventos.push('cascara');
   }
   return eventos;
 }
@@ -100,6 +114,30 @@ export function pasoObjetos(estado, karts, pista, dt, azar, eventos) {
       }
     });
   }
+
+  for (const c of estado.calabazas) {
+    c.vida -= dt;
+    c.s = (c.s + c.vel * dt) % pista.largo;
+    const p = puntoEn(pista, c.s, c.lateral);
+    c.x = p.x;
+    c.y = p.y;
+    karts.forEach((k, i) => {
+      if (c.vida <= 0 || k === c.dueno || k.enAire || !toca(k, c)) return;
+      golpear(k, eventos[i]);
+      c.vida = 0;
+    });
+  }
+  estado.calabazas = estado.calabazas.filter((c) => c.vida > 0);
+
+  for (const c of estado.cascaras) {
+    if (c.espera > 0) c.espera -= dt;
+    karts.forEach((k, i) => {
+      if (c.fuera || k.enAire || (k === c.dueno && c.espera > 0) || !toca(k, c)) return;
+      golpear(k, eventos[i]);
+      c.fuera = true;
+    });
+  }
+  estado.cascaras = estado.cascaras.filter((c) => !c.fuera);
 
   karts.forEach((a) => {
     if (a.disco <= 0 || a.enAire) return;
