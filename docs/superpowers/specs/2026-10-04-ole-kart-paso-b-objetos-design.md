@@ -123,7 +123,7 @@ La intención de manejo suma el campo `usa` (verdadero solo en el paso en que se
   - nada golpea a un kart en el aire;
   - los rivales usan los objetos según las reglas, y contra niños con probabilidad 1/3;
   - una carrera completa con objetos termina en un tiempo razonable;
-  - con objetos, los niños en modo ayuda que solo aceleran siguen pudiendo quedar entre los primeros (puesto medio de 6,2 o mejor y al menos un 4.º puesto en 10 carreras).
+  - con objetos, los niños en modo ayuda que aceleran y usan su objeto apenas lo tienen siguen pudiendo quedar entre los primeros (puesto medio de 6,2 o mejor y al menos un 4.º puesto en 10 carreras).
 - **En el navegador:** carrera de 2 jugadores con controles simulados que usan X; capturas de la casilla con objeto y de un trompo; cuadros por segundo; sin errores.
 - **Real:** los niños con los controles en el notebook.
 
