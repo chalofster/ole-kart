@@ -1,5 +1,6 @@
 import { crearCarrera, pasoCarrera, VUELTAS } from '../logica/carrera.js';
 import { crearPiloto, conducir, ayudar, QUIETO } from '../logica/pilotos.js';
+import { crearSalida, actualizarSalida } from '../logica/pausa.js';
 import { crearCamara, seguir, dibujarVistas } from '../dibujo/camaras.js';
 import { el } from './dom.js';
 
@@ -35,6 +36,7 @@ export function pantallaCarrera(ctx, { jugadores }) {
   let acumulado = 0;
   let t = 0;
   let pausa = false;
+  const salida = crearSalida();
   let fin = 0;
   let ultimaCuenta = null;
 
@@ -57,13 +59,15 @@ export function pantallaCarrera(ctx, { jugadores }) {
         const libre = !jugadores.some((j) => j.fuente === 'teclado');
         if (libre && teclado && Object.values(teclado.recien).some(Boolean)) jugadores[perdido].fuente = 'teclado';
       }
-      if (pausa && jugadores.some((j) => porId.get(j.fuente)?.recien.vuelve)) {
+      const apretoB = jugadores.some((j) => porId.get(j.fuente)?.recien.vuelve);
+      const sujetaB = jugadores.some((j) => porId.get(j.fuente)?.vuelve);
+      if (actualizarSalida(salida, pausa, apretoB, sujetaB, dt)) {
         ctx.ir('inicio');
         return;
       }
       const detenida = pausa || perdido !== -1;
       if (perdido !== -1) mostrarAviso(`<div><span class="j${perdido + 1}">🎮</span> ❌</div>`);
-      else if (pausa) mostrarAviso('<div>⏸️</div><div class="pequeno">▶️ Start · 🏠 B</div>');
+      else if (pausa) mostrarAviso('<div>⏸️</div><div class="pequeno">▶️ Start · 🏠 B ⏳</div>');
       else mostrarAviso(null);
 
       if (!detenida) {
