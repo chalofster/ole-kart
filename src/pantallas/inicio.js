@@ -1,6 +1,7 @@
 import { crearCarrera, pasoCarrera, VELOCIDADES } from '../logica/carrera.js';
 import { crearPiloto, conducir } from '../logica/pilotos.js';
 import { crearMenu, pulsarMenu } from '../logica/menu.js';
+import { guardarCancion, borrarCancion } from '../sonido/cancion.js';
 import { crearCamara, seguir, dibujarVistas } from '../dibujo/camaras.js';
 import { el } from './dom.js';
 
@@ -27,8 +28,35 @@ export function pantallaInicio(ctx) {
   const raiz = el('div', 'inicio', `
     <div class="logo">Olé Kart</div>
     <div class="opciones jugadores"><div class="opcion">👤</div><div class="opcion">👥</div></div>
-    <div class="opciones velocidad"><div class="opcion">🐢</div><div class="opcion">🐇</div><div class="opcion">🚀</div></div>`);
+    <div class="opciones velocidad"><div class="opcion">🐢</div><div class="opcion">🐇</div><div class="opcion">🚀</div></div>
+    <div class="cancion"></div>
+    <input type="file" accept="audio/*" class="oculto" />`);
   ctx.capa.append(raiz);
+
+  // 🎵 (con el mouse, para el adulto): elegir una canción del computador para las carreras, o quitarla.
+  const boton = raiz.querySelector('.cancion');
+  const archivo = raiz.querySelector('input');
+  const pintarCancion = () => {
+    const texto = sonido.hayCancion() ? '🎵✅' : '🎵';
+    if (boton.textContent !== texto) boton.textContent = texto;
+  };
+  pintarCancion();
+  boton.addEventListener('click', () => {
+    if (!sonido.hayCancion()) {
+      archivo.click();
+      return;
+    }
+    sonido.ponerCancion(null);
+    borrarCancion();
+    pintarCancion();
+  });
+  archivo.addEventListener('change', () => {
+    const elegido = archivo.files[0];
+    if (!elegido) return;
+    sonido.ponerCancion(elegido);
+    guardarCancion(elegido);
+    pintarCancion();
+  });
   const grupos = { jugadores: raiz.querySelector('.jugadores'), velocidad: raiz.querySelector('.velocidad') };
   const menu = crearMenu(ctx.velocidad ?? 0);
   for (const [paso, grupo] of Object.entries(grupos)) {
@@ -49,6 +77,7 @@ export function pantallaInicio(ctx) {
       t += dt;
       for (const f of fuentes) pulsarMenu(menu, f.id, f.recien);
       pintar();
+      pintarCancion();
       if (menu.listo) {
         sonido.reanudar();
         ctx.velocidad = menu.velocidad;

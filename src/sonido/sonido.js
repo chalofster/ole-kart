@@ -1,8 +1,14 @@
+import { notasDelPaso, SEMICORCHEA } from './musica.js';
+
 export const frecuenciaMotor = (vel) => 55 + Math.abs(vel) * 5;
 
-const SILENCIO = { reanudar() {}, activo: () => true, motores() {}, efecto() {}, musica() {} };
+const SILENCIO = {
+  reanudar() {}, activo: () => true, motores() {}, efecto() {}, musica() {},
+  ponerCancion() {}, hayCancion: () => false, cancionSonando: () => false,
+};
 
-// Todo se sintetiza con Web Audio. La música es original: bajo, batería y un arpegio en la menor.
+// Todo se sintetiza con Web Audio; la música original está en musica.js.
+// En las carreras, una canción propia del computador puede reemplazar esa música.
 export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.webkitAudioContext) {
   if (!Contexto) return SILENCIO;
   const ctx = new Contexto();
@@ -23,7 +29,7 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
     return { osc, vol };
   });
 
-  function tono(frec, dur, tipo = 'square', vol = 0.15, cuando = ctx.currentTime, hasta = frec) {
+  function tono(frec, dur, tipo = 'square', vol = 0.15, cuando = ctx.currentTime, hasta = frec, destino = maestro) {
     const o = ctx.createOscillator();
     o.type = tipo;
     o.frequency.setValueAtTime(frec, cuando);
@@ -31,7 +37,7 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
     const g = ctx.createGain();
     g.gain.setValueAtTime(vol, cuando);
     g.gain.exponentialRampToValueAtTime(0.0001, cuando + dur);
-    o.connect(g).connect(maestro);
+    o.connect(g).connect(destino);
     o.start(cuando);
     o.stop(cuando + dur + 0.02);
   }
@@ -61,20 +67,53 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
     meta: () => [523, 659, 784, 1047].forEach((f, i) => tono(f, 0.3, 'square', 0.12, ctx.currentTime + i * 0.15)),
   };
 
-  const BAJO = [110, 110, 131, 110, 147, 131, 110, 98];
+  // El bajo pasa por un filtro para que suene redondo.
+  const filtroBajo = ctx.createBiquadFilter();
+  filtroBajo.type = 'lowpass';
+  filtroBajo.frequency.value = 700;
+  filtroBajo.connect(maestro);
+  const INSTRUMENTOS = {
+    bombo: (n, t) => tono(150, 0.22, 'sine', 0.55, t, 45),
+    palmas: (n, t) => ruido(0.1, 0.2, t),
+    platillo: (n, t) => ruido(0.03, 0.05, t),
+    bajo: (n, t) => tono(n.frec, 0.2, 'sawtooth', 0.16, t, n.frec, filtroBajo),
+    acorde: (n, t) => n.frecs.forEach((f) => tono(f, 0.12, 'square', 0.03, t)),
+    melodia: (n, t) => tono(n.frec, 0.18, 'triangle', 0.1, t),
+  };
   let reloj = null;
   let siguiente = 0;
   let paso = 0;
   function programar() {
     while (siguiente < ctx.currentTime + 0.2) {
-      const corchea = paso % 8;
-      tono(BAJO[corchea], 0.22, 'triangle', 0.18, siguiente);
-      if (corchea % 2 === 1) ruido(0.05, 0.06, siguiente);
-      if (corchea === 2 || corchea === 6) ruido(0.12, 0.12, siguiente);
-      if (paso % 16 === 0) [440, 523, 659].forEach((f, i) => tono(f, 0.2, 'square', 0.05, siguiente + i * 0.25));
-      siguiente += 0.25;
+      for (const n of notasDelPaso(paso)) INSTRUMENTOS[n.tipo](n, siguiente);
+      siguiente += SEMICORCHEA;
       paso += 1;
     }
+  }
+
+  // Canción propia: suena en bucle por el mismo volumen general que el resto.
+  const reproductor = new Audio();
+  reproductor.loop = true;
+  const volCancion = ctx.createGain();
+  volCancion.gain.value = 0.8;
+  ctx.createMediaElementSource(reproductor).connect(volCancion).connect(maestro);
+  let cancion = null;
+  let sonando = false;
+
+  function encenderMusica() {
+    if (cancion) {
+      reproductor.currentTime = 0;
+      reproductor.play().catch(() => {});
+    } else {
+      paso = 0;
+      siguiente = ctx.currentTime + 0.1;
+      reloj = setInterval(programar, 50);
+    }
+  }
+  function apagarMusica() {
+    reproductor.pause();
+    clearInterval(reloj);
+    reloj = null;
   }
 
   return {
@@ -93,14 +132,21 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
       EFECTOS[nombre]?.();
     },
     musica(encender) {
-      if (encender && !reloj) {
-        siguiente = ctx.currentTime + 0.1;
-        reloj = setInterval(programar, 50);
-      }
-      if (!encender && reloj) {
-        clearInterval(reloj);
-        reloj = null;
-      }
+      if (encender === sonando) return;
+      sonando = encender;
+      if (encender) encenderMusica();
+      else apagarMusica();
     },
+    // archivo: un archivo de música del computador, o null para volver a la música del juego.
+    ponerCancion(archivo) {
+      if (sonando) apagarMusica();
+      if (cancion) URL.revokeObjectURL(cancion);
+      cancion = archivo ? URL.createObjectURL(archivo) : null;
+      if (cancion) reproductor.src = cancion;
+      else reproductor.removeAttribute('src');
+      if (sonando) encenderMusica();
+    },
+    hayCancion: () => cancion !== null,
+    cancionSonando: () => cancion !== null && !reproductor.paused,
   };
 }

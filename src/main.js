@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import './estilo.css';
 import { crearEntradas } from './entrada/mandos.js';
 import { crearSonido } from './sonido/sonido.js';
+import { leerCancion } from './sonido/cancion.js';
 import { crearJuego } from './juego.js';
 
 const lienzo = document.getElementById('lienzo');
@@ -29,6 +30,10 @@ if (renderer) {
   window.addEventListener('keydown', () => sonido.reanudar());
 
   const juego = crearJuego({ renderer, capa, entradas: crearEntradas(window), sonido });
+  // La canción propia elegida en otra ocasión, guardada en este computador.
+  leerCancion().then((archivo) => {
+    if (archivo) sonido.ponerCancion(archivo);
+  });
   window.addEventListener('blur', () => juego.pausar());
   let antes = performance.now();
   renderer.setAnimationLoop((ahora) => {
