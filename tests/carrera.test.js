@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { crearPista, NOCHE } from '../src/logica/pista.js';
+import { crearPista, NOCHE, proyectar } from '../src/logica/pista.js';
 import { azarConSemilla } from '../src/logica/azar.js';
-import { KART } from '../src/logica/kart.js';
+import { KART, crearKart } from '../src/logica/kart.js';
 import {
   crearCarrera, pasoCarrera, actualizarVueltas, recorrido, factorVelocidad, separarKarts,
-  ordenarPuestos, actualizarContrario, VUELTAS, CUENTA,
+  ordenarPuestos, actualizarContrario, VUELTAS, CUENTA, VELOCIDADES,
 } from '../src/logica/carrera.js';
 
 const pista = crearPista(NOCHE);
@@ -197,20 +197,52 @@ describe('factor en cada kart', () => {
   });
 });
 
+describe('velocidades', () => {
+  it('hay tres velocidades: la normal, 25 % y 50 % más rápidas', () => {
+    expect(VELOCIDADES).toEqual([1, 1.25, 1.5]);
+  });
+
+  it('la velocidad elegida multiplica el factor de todos los karts', () => {
+    const normal = crearCarrera(pista, IDS, [], azarConSemilla(9));
+    const rapida = crearCarrera(pista, IDS, [], azarConSemilla(9), 1.5);
+    expect(normal.clase).toBe(1);
+    expect(rapida.clase).toBe(1.5);
+    for (const c of [normal, rapida]) {
+      c.estado = 'carrera';
+      pasoCarrera(c, ACELERAN, dt);
+    }
+    rapida.karts.forEach((k, i) => expect(k.factor).toBeCloseTo(normal.karts[i].factor * 1.5, 9));
+  });
+});
+
 describe('choques entre karts', () => {
-  it('separa dos karts que se tocan y les quita un poco de velocidad', () => {
-    const a = { x: 0, y: 0, h: 0, vel: 10 };
-    const b = { x: 1, y: 0, h: 0, vel: 10 };
-    separarKarts([a, b]);
-    expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeCloseTo(KART.radio * 2, 6);
-    expect(a.vel).toBeLessThan(10);
+  it('se empujan hacia los lados de la pista hasta dejar de tocarse, sin moverse hacia atrás', () => {
+    const a = crearKart(pista, 20, 0);
+    const b = crearKart(pista, 21, 0.3);
+    separarKarts([a, b], pista);
+    expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeGreaterThanOrEqual(KART.radio * 2 - 1e-9);
+    const pa = proyectar(pista, a.x, a.y);
+    const pb = proyectar(pista, b.x, b.y);
+    expect(pb.lateral).toBeGreaterThan(0.3);
+    expect(pa.lateral).toBeLessThan(0);
+    expect(pb.s - pa.s).toBeCloseTo(1, 1);
+  });
+
+  it('el de atrás pierde un poco de velocidad y el de adelante, nada', () => {
+    const a = Object.assign(crearKart(pista, 20, 0), { vel: 20 });
+    const b = Object.assign(crearKart(pista, 21, 0), { vel: 15 });
+    separarKarts([a, b], pista);
+    expect(a.vel).toBeLessThan(20);
+    expect(a.vel).toBeGreaterThan(19);
+    expect(b.vel).toBe(15);
   });
 
   it('no separa un kart en el aire de uno en el suelo', () => {
-    const a = { x: 0, y: 0, h: 0, vel: 10 };
-    const b = { x: 1, y: 0, h: 2, vel: 10 };
-    separarKarts([a, b]);
-    expect(b.x).toBe(1);
+    const a = crearKart(pista, 20, 0);
+    const b = Object.assign(crearKart(pista, 21, 0), { h: 2 });
+    const x = b.x;
+    separarKarts([a, b], pista);
+    expect(b.x).toBe(x);
   });
 });
 

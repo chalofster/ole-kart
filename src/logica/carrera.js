@@ -3,9 +3,12 @@ import { diferencia } from './pista.js';
 
 export const VUELTAS = 3;
 export const CUENTA = 3;
+// Velocidades para elegir al empezar: 🐢 la normal, 🐇 25 % más rápida y 🚀 50 % más rápida.
+export const VELOCIDADES = [1, 1.25, 1.5];
 
 // Parrilla detrás de la meta, de a dos por fila. El índice 0 parte adelante a la izquierda.
-export function crearCarrera(pista, personajes, humanos = [], azar = Math.random) {
+// clase: la velocidad elegida, que vale para todos los karts.
+export function crearCarrera(pista, personajes, humanos = [], azar = Math.random, clase = 1) {
   const karts = personajes.map((id, i) => {
     const fila = Math.floor(i / 2);
     const k = crearKart(pista, pista.largo - 8 - fila * 6, i % 2 === 0 ? 3 : -3);
@@ -15,7 +18,7 @@ export function crearCarrera(pista, personajes, humanos = [], azar = Math.random
       vuelta: 0, cp: 0, termino: false, tiempoFinal: null, contrario: 0, puesto: i + 1,
     });
   });
-  return { pista, karts, tiempo: 0, cuenta: CUENTA, estado: 'cuenta', puestos: karts.map((_, i) => i) };
+  return { pista, karts, clase, tiempo: 0, cuenta: CUENTA, estado: 'cuenta', puestos: karts.map((_, i) => i) };
 }
 
 // cp es el siguiente control por cruzar: 0 = la meta antes de empezar, 1..N-1 = controles,
@@ -67,7 +70,9 @@ export function factorVelocidad(k, propio, lider, mejorHumano, largo) {
   return f;
 }
 
-export function separarKarts(karts) {
+// Dos karts que se tocan se empujan hacia los lados de la pista, así el de atrás pasa por el
+// costado en vez de quedar pegado. Solo el de atrás pierde un poco de velocidad, según qué tan de frente lo alcanzó.
+export function separarKarts(karts, pista) {
   const minimo = KART.radio * 2;
   for (let i = 0; i < karts.length; i++) {
     for (let j = i + 1; j < karts.length; j++) {
@@ -76,17 +81,18 @@ export function separarKarts(karts) {
       if (Math.abs(a.h - b.h) > 1) continue;
       const dx = b.x - a.x;
       const dy = b.y - a.y;
-      const d = Math.hypot(dx, dy);
-      if (d >= minimo) continue;
-      const nx = d > 1e-6 ? dx / d : 1;
-      const ny = d > 1e-6 ? dy / d : 0;
-      const empuje = (minimo - d) / 2;
-      a.x -= nx * empuje;
-      a.y -= ny * empuje;
-      b.x += nx * empuje;
-      b.y += ny * empuje;
-      a.vel *= 0.98;
-      b.vel *= 0.98;
+      if (Math.hypot(dx, dy) >= minimo) continue;
+      const m = pista.muestras[a.indice];
+      const largo = dx * m.tx + dy * m.ty;
+      const lateral = dx * m.nx + dy * m.ny;
+      const lado = lateral >= 0 ? 1 : -1;
+      const empuje = (Math.sqrt(minimo ** 2 - largo ** 2) - Math.abs(lateral)) / 2;
+      a.x -= m.nx * lado * empuje;
+      a.y -= m.ny * lado * empuje;
+      b.x += m.nx * lado * empuje;
+      b.y += m.ny * lado * empuje;
+      const atras = largo >= 0 ? a : b;
+      atras.vel *= 1 - (0.02 * Math.abs(largo)) / minimo;
     }
   }
 }
@@ -129,7 +135,7 @@ export function pasoCarrera(c, intenciones, dt) {
   c.karts.forEach((k, i) => {
     const sAntes = k.s;
     // Queda en el kart para que el modo ayuda y los rivales aceleren hasta la velocidad que les toca.
-    k.factor = factorVelocidad(k, valores[i], lider, mejorHumano, c.pista.largo);
+    k.factor = c.clase * factorVelocidad(k, valores[i], lider, mejorHumano, c.pista.largo);
     eventos[i].push(...pasoKart(k, intenciones[i], c.pista, dt, k.factor));
     actualizarVueltas(k, sAntes, c.pista, eventos[i]);
     if (!k.termino && k.vuelta >= VUELTAS) {
@@ -138,7 +144,7 @@ export function pasoCarrera(c, intenciones, dt) {
     }
     actualizarContrario(k, c.pista, dt);
   });
-  separarKarts(c.karts);
+  separarKarts(c.karts, c.pista);
   ordenarPuestos(c);
   // Con niños, la carrera termina cuando ellos llegan; sin niños (simulación), cuando llegan todos.
   const quienes = c.karts.some((k) => k.humano) ? c.karts.filter((k) => k.humano) : c.karts;

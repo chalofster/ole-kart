@@ -61,8 +61,8 @@ export function ayudar(int, k, pista) {
 }
 
 // Carrera completa sin pantalla, con los 8 karts manejados por el computador.
-export function simularCarrera(pista, { azar = Math.random, segundos = 400 } = {}) {
-  const c = crearCarrera(pista, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [], azar);
+export function simularCarrera(pista, { azar = Math.random, segundos = 400, clase = 1 } = {}) {
+  const c = crearCarrera(pista, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [], azar, clase);
   const pilotos = c.karts.map(() => crearPiloto(azar));
   const dt = 1 / 60;
   while (c.estado !== 'fin' && c.tiempo < segundos) {

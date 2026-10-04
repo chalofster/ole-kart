@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { crearPista, NOCHE, MEDIO_ANCHO, proyectar } from '../src/logica/pista.js';
 import { crearKart, pasoKart, KART } from '../src/logica/kart.js';
-import { actualizarVueltas } from '../src/logica/carrera.js';
+import { actualizarVueltas, crearCarrera, pasoCarrera, recorrido } from '../src/logica/carrera.js';
 import { azarConSemilla } from '../src/logica/azar.js';
 import {
   crearPiloto, conducir, ayudar, velocidadPrudente, simularCarrera, QUIETO,
@@ -11,13 +11,13 @@ const pista = crearPista(NOCHE);
 const dt = 1 / 60;
 
 // Da una vuelta con la función de manejo indicada y mide qué tan lejos del centro llegó.
-function unaVuelta(manejar, segundos = 80) {
+function unaVuelta(manejar, segundos = 80, clase = 1) {
   const k = crearKart(pista, 5);
-  Object.assign(k, { vuelta: 0, cp: 1 });
+  Object.assign(k, { vuelta: 0, cp: 1, factor: clase });
   let maxLateral = 0;
   for (let i = 0; i < 60 * segundos && k.vuelta < 1; i++) {
     const antes = k.s;
-    pasoKart(k, manejar(k), pista, dt);
+    pasoKart(k, manejar(k), pista, dt, clase);
     actualizarVueltas(k, antes, pista);
     maxLateral = Math.max(maxLateral, Math.abs(k.lateral));
   }
@@ -81,6 +81,51 @@ describe('impulso para quien va atrás', () => {
       expect(k.vel).toBeGreaterThan(KART.velMax * 1.1);
     }
   });
+});
+
+describe('adelantar', () => {
+  it('un rival más rápido que alcanza a otro en su mismo carril lo pasa, sin quedar pegado', () => {
+    const c = crearCarrera(pista, ['lento', 'rapido'], [], azarConSemilla(5));
+    c.estado = 'carrera';
+    Object.assign(c.karts[0], crearKart(pista, 40, 0), { ritmo: 0.85, cp: 1, vel: 15 });
+    Object.assign(c.karts[1], crearKart(pista, 25, 0), { ritmo: 1, cp: 1, vel: 22 });
+    const pilotos = c.karts.map(() => ({ ...crearPiloto(azarConSemilla(6)), carril: 0 }));
+    let contacto = 0;
+    for (let i = 0; i < 60 * 12; i++) {
+      pasoCarrera(c, c.karts.map((k, j) => conducir(pilotos[j], k, pista, dt)), dt);
+      const [a, b] = c.karts;
+      if (Math.hypot(a.x - b.x, a.y - b.y) < KART.radio * 2 + 0.05) contacto += dt;
+    }
+    expect(recorrido(c.karts[1], pista)).toBeGreaterThan(recorrido(c.karts[0], pista));
+    expect(contacto).toBeLessThan(2);
+  });
+});
+
+describe('velocidades más rápidas', () => {
+  const normal = simularCarrera(pista, { azar: azarConSemilla(42) });
+  for (const clase of [1.25, 1.5]) {
+    it(`a ${clase}× el modo ayuda da la vuelta sin salirse del camino, aunque el niño gire siempre`, () => {
+      for (const giro of [0, 1, -1]) {
+        const { k, maxLateral } = unaVuelta((kart) => ayudar({ ...QUIETO, giro }, kart, pista), 80, clase);
+        expect(k.vuelta).toBe(1);
+        expect(maxLateral).toBeLessThan(MEDIO_ANCHO);
+      }
+    });
+
+    it(`a ${clase}× un rival da la vuelta sin salirse del camino`, () => {
+      const piloto = crearPiloto(azarConSemilla(1));
+      const { k, maxLateral } = unaVuelta((kart) => conducir(piloto, kart, pista, dt), 80, clase);
+      expect(k.vuelta).toBe(1);
+      expect(maxLateral).toBeLessThan(MEDIO_ANCHO);
+    });
+
+    it(`a ${clase}× los 8 rivales terminan la carrera simulada, más rápido que a velocidad normal`, () => {
+      const c = simularCarrera(pista, { azar: azarConSemilla(42), clase });
+      expect(c.estado).toBe('fin');
+      expect(c.karts.every((k) => k.termino)).toBe(true);
+      expect(c.tiempo).toBeLessThan((normal.tiempo / clase) * 1.1);
+    });
+  }
 });
 
 describe('carrera completa simulada', () => {
