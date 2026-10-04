@@ -4,7 +4,7 @@ import { crearKart, pasoKart, KART } from '../src/logica/kart.js';
 import { actualizarVueltas, crearCarrera, pasoCarrera, recorrido } from '../src/logica/carrera.js';
 import { azarConSemilla } from '../src/logica/azar.js';
 import {
-  crearPiloto, conducir, ayudar, velocidadPrudente, simularCarrera, QUIETO,
+  crearPiloto, conducir, ayudar, velocidadPrudente, simularCarrera, QUIETO, decidirObjeto,
 } from '../src/logica/pilotos.js';
 
 const pista = crearPista(NOCHE);
@@ -90,7 +90,7 @@ describe('impulso para quien va atrás', () => {
 });
 
 describe('equilibrio del modo ayuda', () => {
-  it('con ayuda y solo acelerando, los niños a veces quedan entre los primeros', () => {
+  it('con ayuda, acelerando y usando su objeto apenas lo tienen, los niños a veces quedan entre los primeros', () => {
     const puestos = [];
     for (let semilla = 1; semilla <= 10; semilla++) {
       const azar = azarConSemilla(semilla);
@@ -99,7 +99,8 @@ describe('equilibrio del modo ayuda', () => {
       while (c.estado !== 'fin' && c.tiempo < 400) {
         const intenciones = c.karts.map((k, i) => {
           if (c.estado !== 'carrera') return QUIETO;
-          return k.humano && !k.termino ? ayudar({ ...QUIETO, acelera: true }, k, pista) : conducir(pilotos[i], k, pista, dt);
+          if (!k.humano || k.termino) return conducir(pilotos[i], k, pista, dt, c);
+          return ayudar({ ...QUIETO, acelera: true, usa: !!k.objeto && k.ruleta === 0 }, k, pista);
         });
         pasoCarrera(c, intenciones, dt);
       }
@@ -153,6 +154,84 @@ describe('velocidades más rápidas', () => {
       expect(c.tiempo).toBeLessThan((normal.tiempo / clase) * 1.1);
     });
   }
+});
+
+describe('rivales con objetos', () => {
+  // Carrera con un niño (índice 7); todos lejos salvo los que cada prueba ubica.
+  function preparar() {
+    const c = crearCarrera(pista, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [7], azarConSemilla(20));
+    c.estado = 'carrera';
+    c.karts.forEach((k, i) => Object.assign(k, crearKart(pista, 600 + i * 30, 0)));
+    return c;
+  }
+  const ubicar = (k, s, lateral = 0) => Object.assign(k, crearKart(pista, s, lateral));
+  const decide = (c, k, azar = () => 0) => decidirObjeto(crearPiloto(azarConSemilla(3)), k, c, dt, azar);
+
+  it('la bola disco la usa de inmediato; sin objeto o con la ruleta girando, nada', () => {
+    const c = preparar();
+    const k = c.karts[0];
+    expect(decide(c, k)).toBe(false);
+    k.objeto = 'disco';
+    k.ruleta = 0.5;
+    expect(decide(c, k)).toBe(false);
+    k.ruleta = 0;
+    expect(decide(c, k)).toBe(true);
+  });
+
+  it('el ají lo usa en las rectas y no antes de una curva cerrada', () => {
+    const c = preparar();
+    const k = ubicar(c.karts[0], 30);
+    k.objeto = 'aji';
+    expect(decide(c, k)).toBe(true);
+    ubicar(k, proyectar(pista, 92, 61).s - 15);
+    expect(decide(c, k)).toBe(false);
+  });
+
+  it('la calabaza la lanza si tiene un kart adelante en su línea; a un niño, solo 1 de cada 3 veces', () => {
+    const c = preparar();
+    const k = ubicar(c.karts[0], 100);
+    k.objeto = 'calabaza';
+    expect(decide(c, k)).toBe(false);
+    ubicar(c.karts[1], 120);
+    expect(decide(c, k)).toBe(true);
+    ubicar(c.karts[1], 600);
+    ubicar(c.karts[7], 120);
+    expect(decide(c, k, () => 0.5)).toBe(false);
+    expect(decide(c, k, () => 0.2)).toBe(true);
+  });
+
+  it('la cáscara la deja si alguien lo sigue de cerca en su línea', () => {
+    const c = preparar();
+    const k = ubicar(c.karts[0], 200);
+    k.objeto = 'cascara';
+    expect(decide(c, k)).toBe(false);
+    ubicar(c.karts[2], 192, 1);
+    expect(decide(c, k)).toBe(true);
+  });
+
+  it('revisa una vez por segundo y, si lo guarda más de 8 s, lo usa igual', () => {
+    const c = preparar();
+    const k = ubicar(c.karts[0], 100);
+    k.objeto = 'calabaza';
+    const piloto = crearPiloto(azarConSemilla(4));
+    let usos = 0;
+    let pasos = 0;
+    while (!usos && pasos < 60 * 12) {
+      if (decidirObjeto(piloto, k, c, dt, () => 0)) usos += 1;
+      pasos += 1;
+    }
+    expect(pasos * dt).toBeGreaterThan(8);
+    expect(pasos * dt).toBeLessThan(10);
+  });
+
+  it('conducir lleva la decisión en usa, y sin carrera nunca usa', () => {
+    const c = preparar();
+    const k = c.karts[0];
+    k.objeto = 'disco';
+    expect(conducir(crearPiloto(azarConSemilla(5)), k, pista, dt, c).usa).toBe(true);
+    k.objeto = 'disco';
+    expect(conducir(crearPiloto(azarConSemilla(5)), k, pista, dt).usa).toBe(false);
+  });
 });
 
 describe('carrera completa simulada', () => {
