@@ -35,7 +35,7 @@ export function conducir(piloto, k, pista, dt) {
     piloto.reloj = 0;
     piloto.desde = k.s;
   }
-  const prudente = velocidadPrudente(pista, k.s) * KART.velMax;
+  const prudente = velocidadPrudente(pista, k.s) * KART.velMax * (k.factor ?? 1);
   return {
     giro: haciaAdelante(k, pista, piloto.carril),
     acelera: k.vel < prudente,
@@ -51,7 +51,7 @@ export function ayudar(int, k, pista) {
   const previsto = k.lateral + k.vel * Math.sin(diferenciaAngular(m.rumbo, k.rumbo)) * 0.5;
   const cerca = Math.max(Math.abs(k.lateral), Math.abs(previsto));
   const peso = Math.min(1, Math.max(0, (cerca - 2.5) / 3));
-  const prudente = velocidadPrudente(pista, k.s) * KART.velMax;
+  const prudente = velocidadPrudente(pista, k.s) * KART.velMax * (k.factor ?? 1);
   return {
     giro: limitar(int.giro * (1 - peso) + haciaAdelante(k, pista, 0) * peso),
     acelera: !int.frena && k.vel < prudente,

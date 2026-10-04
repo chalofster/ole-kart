@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { crearPista, NOCHE, MEDIO_ANCHO, proyectar } from '../src/logica/pista.js';
-import { crearKart, pasoKart } from '../src/logica/kart.js';
+import { crearKart, pasoKart, KART } from '../src/logica/kart.js';
 import { actualizarVueltas } from '../src/logica/carrera.js';
 import { azarConSemilla } from '../src/logica/azar.js';
 import {
@@ -67,6 +67,19 @@ describe('modo ayuda', () => {
     const k = crearKart(pista, 5);
     k.vel = 10;
     expect(ayudar({ ...QUIETO, frena: true }, k, pista)).toMatchObject({ frena: true, acelera: false });
+  });
+});
+
+describe('impulso para quien va atrás', () => {
+  it('el modo ayuda y los rivales también aprovechan el impulso', () => {
+    const piloto = crearPiloto(azarConSemilla(3));
+    const manejos = [(k) => ayudar(QUIETO, k, pista), (k) => conducir(piloto, k, pista, dt)];
+    for (const manejar of manejos) {
+      const k = crearKart(pista, 5);
+      Object.assign(k, { vel: KART.velMax, factor: 1.12 });
+      for (let i = 0; i < 60; i++) pasoKart(k, manejar(k), pista, dt, k.factor);
+      expect(k.vel).toBeGreaterThan(KART.velMax * 1.1);
+    }
   });
 });
 

@@ -185,6 +185,18 @@ describe('factorVelocidad', () => {
   });
 });
 
+describe('factor en cada kart', () => {
+  it('pasoCarrera deja en cada kart el factor que usó, para que los pilotos lo respeten', () => {
+    const c = crearCarrera(pista, IDS, [], azarConSemilla(8));
+    c.estado = 'carrera';
+    pasoCarrera(c, ACELERAN, dt);
+    for (const k of c.karts) {
+      expect(k.factor).toBeGreaterThanOrEqual(0.92 * 0.85);
+      expect(k.factor).toBeLessThanOrEqual(1.12 * 1.1);
+    }
+  });
+});
+
 describe('choques entre karts', () => {
   it('separa dos karts que se tocan y les quita un poco de velocidad', () => {
     const a = { x: 0, y: 0, h: 0, vel: 10 };

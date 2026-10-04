@@ -128,8 +128,9 @@ export function pasoCarrera(c, intenciones, dt) {
   const mejorHumano = deNinos.length ? Math.max(...deNinos) : null;
   c.karts.forEach((k, i) => {
     const sAntes = k.s;
-    const factor = factorVelocidad(k, valores[i], lider, mejorHumano, c.pista.largo);
-    eventos[i].push(...pasoKart(k, intenciones[i], c.pista, dt, factor));
+    // Queda en el kart para que el modo ayuda y los rivales aceleren hasta la velocidad que les toca.
+    k.factor = factorVelocidad(k, valores[i], lider, mejorHumano, c.pista.largo);
+    eventos[i].push(...pasoKart(k, intenciones[i], c.pista, dt, k.factor));
     actualizarVueltas(k, sAntes, c.pista, eventos[i]);
     if (!k.termino && k.vuelta >= VUELTAS) {
       k.termino = true;
