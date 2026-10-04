@@ -21,8 +21,10 @@ if (renderer) {
   ajustar();
   window.addEventListener('resize', ajustar);
 
-  // El navegador solo deja sonar el audio después de un clic o una tecla.
+  // El navegador solo deja sonar el audio después de un clic o una tecla; los botones de los
+  // controles no cuentan. Mientras siga bloqueado, un 🔇 en todas las pantallas invita a tocarlo.
   const sonido = crearSonido();
+  const mudo = document.getElementById('mudo');
   window.addEventListener('pointerdown', () => sonido.reanudar());
   window.addEventListener('keydown', () => sonido.reanudar());
 
@@ -33,6 +35,7 @@ if (renderer) {
     const dt = Math.min(0.1, (ahora - antes) / 1000);
     antes = ahora;
     juego.cuadro(dt);
+    mudo.classList.toggle('oculto', sonido.activo());
   });
   if (import.meta.env.DEV) window.__ole = { juego };
 }

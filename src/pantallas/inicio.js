@@ -25,11 +25,9 @@ export function pantallaInicio(ctx) {
 
   const raiz = el('div', 'inicio', `
     <div class="logo">Olé Kart</div>
-    <div class="opciones"><div class="opcion">👤</div><div class="opcion">👥</div></div>
-    <div class="sonido">🔇</div>`);
+    <div class="opciones"><div class="opcion">👤</div><div class="opcion">👥</div></div>`);
   ctx.capa.append(raiz);
   const opciones = [...raiz.querySelectorAll('.opcion')];
-  const silencio = raiz.querySelector('.sonido');
   let elegida = 0;
   let elegidaPor; // id de la fuente que confirmó; null si fue con el mouse
   opciones.forEach((o, i) => o.addEventListener('click', () => {
@@ -46,7 +44,6 @@ export function pantallaInicio(ctx) {
         if (f.recien.confirma) elegidaPor = f.id;
       }
       opciones.forEach((o, i) => o.classList.toggle('elegida', i === elegida));
-      silencio.classList.toggle('oculto', sonido.activo());
       if (elegidaPor !== undefined) {
         sonido.reanudar();
         ctx.ir('seleccion', { cantidad: elegida + 1, primera: elegidaPor });
