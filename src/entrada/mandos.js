@@ -1,6 +1,6 @@
 const ZONA_MUERTA = 0.2;
 
-// Mapeo estándar de la Gamepad API: 0 A, 1 B, 3 Y, 5 RB, 7 RT, 9 Start, 12-15 cruceta.
+// Mapeo estándar de la Gamepad API: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 7 RT, 9 Start, 12-15 cruceta.
 export function leerMando(botones, ejes) {
   const pulsado = (i) => !!botones[i] && (botones[i].pressed || botones[i].value > 0.3);
   let giro = -(ejes[0] ?? 0);
@@ -14,6 +14,7 @@ export function leerMando(botones, ejes) {
     derrapa: pulsado(7) || pulsado(5),
     pausa: pulsado(9),
     ayuda: pulsado(3),
+    objeto: pulsado(2) || pulsado(4),
     confirma: pulsado(0),
     vuelve: pulsado(1),
     arriba: pulsado(12) || (ejes[1] ?? 0) < -0.5,
@@ -33,6 +34,7 @@ export function leerTeclado(teclas) {
     derrapa: t('Space'),
     pausa: t('Escape'),
     ayuda: t('KeyY'),
+    objeto: t('KeyX'),
     confirma: t('Enter'),
     vuelve: t('Backspace'),
     arriba: t('ArrowUp'),

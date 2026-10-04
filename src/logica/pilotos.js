@@ -60,6 +60,7 @@ export function ayudar(int, k, pista) {
     acelera: !int.frena && k.vel < prudente,
     frena: int.frena,
     derrapa: int.derrapa,
+    usa: int.usa ?? false,
   };
 }
 

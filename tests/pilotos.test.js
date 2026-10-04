@@ -68,6 +68,12 @@ describe('modo ayuda', () => {
     k.vel = 10;
     expect(ayudar({ ...QUIETO, frena: true }, k, pista)).toMatchObject({ frena: true, acelera: false });
   });
+
+  it('deja pasar el uso del objeto que pidió el niño', () => {
+    const k = crearKart(pista, 5);
+    expect(ayudar({ ...QUIETO, usa: true }, k, pista).usa).toBe(true);
+    expect(ayudar(QUIETO, k, pista).usa).toBe(false);
+  });
 });
 
 describe('impulso para quien va atrás', () => {

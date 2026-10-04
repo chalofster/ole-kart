@@ -32,6 +32,12 @@ describe('leerMando', () => {
     expect(leerMando(botones({ 7: 0.5 }), [0, 0]).derrapa).toBe(true);
     expect(leerMando(botones({ 5: 1 }), [0, 0]).derrapa).toBe(true);
   });
+
+  it('X o el gatillo izquierdo usan el objeto', () => {
+    expect(leerMando(botones({ 2: 1 }), [0, 0]).objeto).toBe(true);
+    expect(leerMando(botones({ 4: 1 }), [0, 0]).objeto).toBe(true);
+    expect(leerMando(botones(), [0, 0]).objeto).toBe(false);
+  });
 });
 
 describe('leerTeclado', () => {
@@ -43,6 +49,11 @@ describe('leerTeclado', () => {
     expect(leerTeclado(new Set(['Escape'])).pausa).toBe(true);
     expect(leerTeclado(new Set(['Backspace'])).vuelve).toBe(true);
     expect(leerTeclado(new Set(['KeyY'])).ayuda).toBe(true);
+  });
+
+  it('la tecla X usa el objeto', () => {
+    expect(leerTeclado(new Set(['KeyX'])).objeto).toBe(true);
+    expect(leerTeclado(new Set()).objeto).toBe(false);
   });
 });
 
