@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import './estilo.css';
 import { crearEntradas } from './entrada/mandos.js';
 import { crearSonido } from './sonido/sonido.js';
-import { leerCancion } from './sonido/cancion.js';
+import { leerCancion, borrarCancion } from './sonido/cancion.js';
 import { crearJuego } from './juego.js';
 
 const lienzo = document.getElementById('lienzo');
@@ -30,7 +30,8 @@ if (renderer) {
   window.addEventListener('keydown', () => sonido.reanudar());
 
   const juego = crearJuego({ renderer, capa, entradas: crearEntradas(window), sonido });
-  // La canción propia elegida en otra ocasión, guardada en este computador.
+  // La canción propia elegida en otra ocasión, guardada en este computador. Si no se puede reproducir, se borra.
+  sonido.alFallarCancion(borrarCancion);
   leerCancion().then((archivo) => {
     if (archivo) sonido.ponerCancion(archivo);
   });

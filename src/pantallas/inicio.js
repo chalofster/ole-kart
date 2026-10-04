@@ -52,6 +52,8 @@ export function pantallaInicio(ctx) {
   });
   archivo.addEventListener('change', () => {
     const elegido = archivo.files[0];
+    // Se vacía para que elegir otra vez el mismo archivo también funcione.
+    archivo.value = '';
     if (!elegido) return;
     sonido.ponerCancion(elegido);
     guardarCancion(elegido);

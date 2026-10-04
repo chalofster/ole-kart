@@ -4,7 +4,7 @@ export const frecuenciaMotor = (vel) => 55 + Math.abs(vel) * 5;
 
 const SILENCIO = {
   reanudar() {}, activo: () => true, motores() {}, efecto() {}, musica() {},
-  ponerCancion() {}, hayCancion: () => false, cancionSonando: () => false,
+  ponerCancion() {}, hayCancion: () => false, cancionSonando: () => false, alFallarCancion() {},
 };
 
 // Todo se sintetiza con Web Audio; la música original está en musica.js.
@@ -99,6 +99,13 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
   ctx.createMediaElementSource(reproductor).connect(volCancion).connect(maestro);
   let cancion = null;
   let sonando = false;
+  let alFallar = () => {};
+  // Un archivo que no es música (o que ya no se puede leer) se quita solo y vuelve la música del juego.
+  reproductor.addEventListener('error', () => {
+    if (!cancion) return;
+    ponerCancion(null);
+    alFallar();
+  });
 
   function encenderMusica() {
     if (cancion) {
@@ -114,6 +121,15 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
     reproductor.pause();
     clearInterval(reloj);
     reloj = null;
+  }
+  // archivo: un archivo de música del computador, o null para volver a la música del juego.
+  function ponerCancion(archivo) {
+    if (sonando) apagarMusica();
+    if (cancion) URL.revokeObjectURL(cancion);
+    cancion = archivo ? URL.createObjectURL(archivo) : null;
+    if (cancion) reproductor.src = cancion;
+    else reproductor.removeAttribute('src');
+    if (sonando) encenderMusica();
   }
 
   return {
@@ -137,16 +153,12 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
       if (encender) encenderMusica();
       else apagarMusica();
     },
-    // archivo: un archivo de música del computador, o null para volver a la música del juego.
-    ponerCancion(archivo) {
-      if (sonando) apagarMusica();
-      if (cancion) URL.revokeObjectURL(cancion);
-      cancion = archivo ? URL.createObjectURL(archivo) : null;
-      if (cancion) reproductor.src = cancion;
-      else reproductor.removeAttribute('src');
-      if (sonando) encenderMusica();
-    },
+    ponerCancion,
     hayCancion: () => cancion !== null,
     cancionSonando: () => cancion !== null && !reproductor.paused,
+    // fn se llama cuando la canción elegida no se pudo reproducir y se quitó.
+    alFallarCancion(fn) {
+      alFallar = fn;
+    },
   };
 }

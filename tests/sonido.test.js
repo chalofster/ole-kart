@@ -18,6 +18,7 @@ describe('sonido', () => {
       s.musica(true);
       s.musica(false);
       s.ponerCancion(null);
+      s.alFallarCancion(() => {});
     }).not.toThrow();
     expect(s.activo()).toBe(true);
     expect(s.hayCancion()).toBe(false);
