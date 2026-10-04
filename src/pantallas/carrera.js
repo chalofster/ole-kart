@@ -1,6 +1,7 @@
 import { crearCarrera, pasoCarrera, VUELTAS } from '../logica/carrera.js';
 import { crearPiloto, conducir, ayudar, QUIETO } from '../logica/pilotos.js';
 import { crearSalida, actualizarSalida } from '../logica/pausa.js';
+import { ICONOS, TIPOS } from '../logica/objetos.js';
 import { crearCamara, seguir, dibujarVistas } from '../dibujo/camaras.js';
 import { el } from './dom.js';
 
@@ -17,13 +18,14 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
   ctx.carrera = carrera;
   const pilotos = carrera.karts.map(() => crearPiloto());
   mundo.ponerKarts(orden.map((id) => personajes.find((p) => p.id === id)));
+  mundo.ponerObjetos(carrera.objetos);
   mundo.actualizar(carrera, 0);
   const camaras = jugadores.map(() => crearCamara(jugadores.length === 2 ? 75 : 65));
   camaras.forEach((c, j) => seguir(c, carrera.karts[humanos[j]], 1, true));
 
   const raiz = el('div', `carrera n${jugadores.length}`);
   const marcadores = jugadores.map((_, j) => {
-    const m = el('div', `marcador j${j + 1}`, '<div class="puesto"></div><div class="vuelta"></div><div class="contrario">↩️</div>');
+    const m = el('div', `marcador j${j + 1}`, '<div class="puesto"></div><div class="vuelta"></div><div class="casilla"></div><div class="contrario">↩️</div>');
     raiz.append(m);
     return m;
   });
@@ -39,6 +41,7 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
   const salida = crearSalida();
   let fin = 0;
   let ultimaCuenta = null;
+  const pideObjeto = jugadores.map(() => false);
 
   function mostrarAviso(html) {
     aviso.classList.toggle('oculto', html === null);
@@ -71,18 +74,23 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
       else mostrarAviso(null);
 
       if (!detenida) {
+        // X se guarda hasta el siguiente paso: en pantallas rápidas hay cuadros sin paso de simulación.
+        jugadores.forEach((jug, j) => {
+          if (porId.get(jug.fuente)?.recien.objeto) pideObjeto[j] = true;
+        });
         acumulado += dt;
         while (acumulado >= PASO) {
           acumulado -= PASO;
           const intenciones = carrera.karts.map((k, i) => {
             if (carrera.estado === 'cuenta') return QUIETO;
             const j = humanos.indexOf(i);
-            if (j === -1 || k.termino) return conducir(pilotos[i], k, pista, PASO);
+            if (j === -1 || k.termino) return conducir(pilotos[i], k, pista, PASO, carrera);
             const f = porId.get(jugadores[j].fuente);
-            const propia = f ? { giro: f.giro, acelera: f.acelera, frena: f.frena, derrapa: f.derrapa } : QUIETO;
+            const propia = f ? { giro: f.giro, acelera: f.acelera, frena: f.frena, derrapa: f.derrapa, usa: pideObjeto[j] } : QUIETO;
             return jugadores[j].ayuda ? ayudar(propia, k, pista) : propia;
           });
           const eventos = pasoCarrera(carrera, intenciones, PASO);
+          pideObjeto.fill(false);
           humanos.forEach((i) => eventos[i].forEach((e) => sonido.efecto(e)));
         }
       }
@@ -101,6 +109,8 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
         m.querySelector('.puesto').textContent = `${k.puesto}º`;
         m.querySelector('.vuelta').textContent = `${Math.min(VUELTAS, k.vuelta + 1)}/${VUELTAS}`;
         m.querySelector('.contrario').classList.toggle('visible', k.contrario > 1);
+        const casilla = k.ruleta > 0 ? ICONOS[TIPOS[Math.floor(t * 12) % TIPOS.length]] : k.objeto ? ICONOS[k.objeto] : '';
+        if (m.querySelector('.casilla').textContent !== casilla) m.querySelector('.casilla').textContent = casilla;
       });
 
       if (carrera.estado === 'fin') {

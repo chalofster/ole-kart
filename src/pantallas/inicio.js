@@ -20,6 +20,7 @@ export function pantallaInicio(ctx) {
     demo.estado = 'carrera';
     pilotos = demo.karts.map(() => crearPiloto());
     mundo.ponerKarts(personajes);
+    mundo.ponerObjetos(demo.objetos);
     mundo.actualizar(demo, 0);
     seguir(camara, demo.karts[0], 1, true);
   }
@@ -89,7 +90,7 @@ export function pantallaInicio(ctx) {
       acumulado += dt;
       while (acumulado >= PASO) {
         acumulado -= PASO;
-        pasoCarrera(demo, demo.karts.map((k, i) => conducir(pilotos[i], k, pista, PASO)), PASO);
+        pasoCarrera(demo, demo.karts.map((k, i) => conducir(pilotos[i], k, pista, PASO, demo)), PASO);
       }
       if (demo.estado === 'fin' || demo.tiempo > 120) nuevaDemo();
       mundo.actualizar(demo, t);

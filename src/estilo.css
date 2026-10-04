@@ -21,6 +21,7 @@ html, body { margin: 0; height: 100%; background: #0b1026; overflow: hidden; fon
 .carrera.n2 .marcador.j2 { left: 50vw; }
 .puesto { font-size: 14vh; font-weight: 900; color: #ffd166; text-shadow: 0 0.5vh 0 #000; line-height: 1; }
 .vuelta { font-size: 6vh; font-weight: 800; text-shadow: 0 0.4vh 0 #000; }
+.casilla { position: absolute; top: 2vh; left: 50%; transform: translateX(-50%); width: 14vh; height: 14vh; border-radius: 3vh; background: rgba(11, 16, 38, 0.75); border: 0.6vh solid #ffd166; font-size: 9vh; display: flex; align-items: center; justify-content: center; }
 .contrario { display: none; position: absolute; top: 25vh; left: 0; width: 100%; text-align: center; font-size: 22vh; }
 .contrario.visible { display: block; }
 .cuenta { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30vh; font-weight: 900; color: #ffd166; text-shadow: 0 1vh 0 #d62828; }

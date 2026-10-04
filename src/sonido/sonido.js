@@ -65,6 +65,15 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
     salto: () => tono(300, 0.3, 'triangle', 0.12, ctx.currentTime, 700),
     vuelta: () => [660, 880].forEach((f, i) => tono(f, 0.15, 'square', 0.12, ctx.currentTime + i * 0.12)),
     meta: () => [523, 659, 784, 1047].forEach((f, i) => tono(f, 0.3, 'square', 0.12, ctx.currentTime + i * 0.15)),
+    caja: () => [880, 1100, 1320, 1100, 1320].forEach((f, i) => tono(f, 0.07, 'triangle', 0.07, ctx.currentTime + i * 0.12)),
+    listo: () => tono(1320, 0.18, 'triangle', 0.1),
+    calabaza: () => tono(500, 0.25, 'sawtooth', 0.1, ctx.currentTime, 150),
+    cascara: () => tono(300, 0.12, 'square', 0.08, ctx.currentTime, 200),
+    golpe: () => {
+      tono(700, 0.6, 'square', 0.1, ctx.currentTime, 120);
+      ruido(0.2, 0.2);
+    },
+    disco: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tono(f, 0.12, 'square', 0.07, ctx.currentTime + i * 0.06)),
   };
 
   // El bajo pasa por un filtro para que suene redondo.
