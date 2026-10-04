@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { crearPista, NOCHE, proyectar } from '../src/logica/pista.js';
 import { azarConSemilla } from '../src/logica/azar.js';
 import { KART, crearKart } from '../src/logica/kart.js';
+import { OBJ } from '../src/logica/objetos.js';
 import {
   crearCarrera, pasoCarrera, actualizarVueltas, recorrido, factorVelocidad, separarKarts,
   ordenarPuestos, actualizarContrario, VUELTAS, CUENTA, VELOCIDADES,
@@ -271,5 +272,55 @@ describe('fin de carrera', () => {
     expect(k.tiempoFinal).toBeGreaterThan(0);
     expect(c.estado).toBe('fin');
     expect(c.karts.filter((x) => x.termino)).toHaveLength(1);
+  });
+});
+
+describe('objetos en la carrera', () => {
+  const usa = (cambios = {}) => IDS.map(() => ({ giro: 0, acelera: true, frena: false, derrapa: false, usa: true, ...cambios }));
+
+  it('la carrera trae las cajas y cada kart parte sin objeto ni efectos', () => {
+    const c = crearCarrera(pista, IDS, [], azarConSemilla(10));
+    expect(c.objetos.cajas.length).toBeGreaterThan(0);
+    for (const k of c.karts) expect(k).toMatchObject({ objeto: null, ruleta: 0, trompo: 0, proteccion: 0, disco: 0 });
+  });
+
+  it('se usa el objeto cuando la intención lo pide, y una sola vez aunque se repita', () => {
+    const c = crearCarrera(pista, IDS, [], azarConSemilla(11));
+    c.estado = 'carrera';
+    c.karts[0].objeto = 'cascara';
+    pasoCarrera(c, usa(), dt);
+    pasoCarrera(c, usa(), dt);
+    expect(c.karts[0].objeto).toBeNull();
+    expect(c.objetos.cascaras).toHaveLength(1);
+  });
+
+  it('no se usan objetos durante la cuenta regresiva ni después de terminar', () => {
+    const c = crearCarrera(pista, IDS, [0], azarConSemilla(12));
+    c.karts[0].objeto = 'aji';
+    pasoCarrera(c, usa(), dt);
+    expect(c.karts[0].objeto).toBe('aji');
+    c.estado = 'carrera';
+    c.karts[0].termino = true;
+    pasoCarrera(c, usa(), dt);
+    expect(c.karts[0].objeto).toBe('aji');
+  });
+
+  it('un kart en trompo no responde a los controles', () => {
+    const c = crearCarrera(pista, IDS, [], azarConSemilla(13));
+    c.estado = 'carrera';
+    Object.assign(c.karts[0], { trompo: OBJ.trompo, vel: 10 });
+    for (let i = 0; i < 20; i++) pasoCarrera(c, ACELERAN, dt);
+    expect(c.karts[0].vel).toBeLessThan(10);
+  });
+
+  it('la bola disco sube 15 % el factor de velocidad', () => {
+    const normal = crearCarrera(pista, IDS, [], azarConSemilla(14));
+    const disco = crearCarrera(pista, IDS, [], azarConSemilla(14));
+    disco.karts[3].disco = OBJ.disco;
+    for (const c of [normal, disco]) {
+      c.estado = 'carrera';
+      pasoCarrera(c, ACELERAN, dt);
+    }
+    expect(disco.karts[3].factor).toBeCloseTo(normal.karts[3].factor * OBJ.discoExtra, 9);
   });
 });

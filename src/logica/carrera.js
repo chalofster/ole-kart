@@ -1,5 +1,9 @@
 import { crearKart, pasoKart, KART } from './kart.js';
 import { diferencia } from './pista.js';
+import { crearObjetos, prepararKart, usarObjeto, pasoObjetos, OBJ } from './objetos.js';
+
+// Intención de un kart que no responde (por ejemplo, durante un trompo).
+const SIN_CONTROL = { giro: 0, acelera: false, frena: false, derrapa: false };
 
 export const VUELTAS = 3;
 export const CUENTA = 3;
@@ -13,12 +17,15 @@ export function crearCarrera(pista, personajes, humanos = [], azar = Math.random
     const fila = Math.floor(i / 2);
     const k = crearKart(pista, pista.largo - 8 - fila * 6, i % 2 === 0 ? 3 : -3);
     const humano = humanos.includes(i);
-    return Object.assign(k, {
+    return prepararKart(Object.assign(k, {
       id, humano, ritmo: humano ? 1 : 0.92 + 0.08 * azar(),
       vuelta: 0, cp: 0, termino: false, tiempoFinal: null, contrario: 0, puesto: i + 1,
-    });
+    }));
   });
-  return { pista, karts, clase, tiempo: 0, cuenta: CUENTA, estado: 'cuenta', puestos: karts.map((_, i) => i) };
+  return {
+    pista, karts, clase, azar, objetos: crearObjetos(pista),
+    tiempo: 0, cuenta: CUENTA, estado: 'cuenta', puestos: karts.map((_, i) => i),
+  };
 }
 
 // cp es el siguiente control por cruzar: 0 = la meta antes de empezar, 1..N-1 = controles,
@@ -134,9 +141,11 @@ export function pasoCarrera(c, intenciones, dt) {
   const mejorHumano = deNinos.length ? Math.max(...deNinos) : null;
   c.karts.forEach((k, i) => {
     const sAntes = k.s;
+    const intencion = k.trompo > 0 ? SIN_CONTROL : intenciones[i];
+    if (intencion.usa && !k.termino) usarObjeto(c.objetos, k, c.pista, c.clase, eventos[i]);
     // Queda en el kart para que el modo ayuda y los rivales aceleren hasta la velocidad que les toca.
-    k.factor = c.clase * factorVelocidad(k, valores[i], lider, mejorHumano, c.pista.largo);
-    eventos[i].push(...pasoKart(k, intenciones[i], c.pista, dt, k.factor));
+    k.factor = c.clase * factorVelocidad(k, valores[i], lider, mejorHumano, c.pista.largo) * (k.disco > 0 ? OBJ.discoExtra : 1);
+    eventos[i].push(...pasoKart(k, intencion, c.pista, dt, k.factor));
     actualizarVueltas(k, sAntes, c.pista, eventos[i]);
     if (!k.termino && k.vuelta >= VUELTAS) {
       k.termino = true;
@@ -144,6 +153,7 @@ export function pasoCarrera(c, intenciones, dt) {
     }
     actualizarContrario(k, c.pista, dt);
   });
+  pasoObjetos(c.objetos, c.karts, c.pista, dt, c.azar, eventos);
   separarKarts(c.karts, c.pista);
   ordenarPuestos(c);
   // Con niños, la carrera termina cuando ellos llegan; sin niños (simulación), cuando llegan todos.
