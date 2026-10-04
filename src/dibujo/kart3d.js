@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { crearPersonaje } from './personajes3d.js';
 import { mate, brillo, malla } from './comun.js';
+import { OBJ } from '../logica/objetos.js';
 
+const COLORES_DISCO = [0xff4d6d, 0xffd166, 0x4cc9f0, 0x80ed99, 0xc77dff];
+const bolaDisco = new THREE.SphereGeometry(0.4, 12, 10);
+const aroDisco = new THREE.TorusGeometry(1.5, 0.1, 6, 24);
 const rueda = new THREE.CylinderGeometry(0.38, 0.38, 0.32, 14);
 const chispa = new THREE.SphereGeometry(0.22, 8, 6);
 const sombra = new THREE.CircleGeometry(1.4, 20);
@@ -41,12 +45,31 @@ export function crearKart3D(ficha) {
   fuego.rotation.z = Math.PI / 2;
   fuego.visible = false;
   cuerpo.add(fuego);
+  const bola = malla(bolaDisco, brillo(COLORES_DISCO[0]), -0.45, 2.6, 0);
+  bola.visible = false;
+  cuerpo.add(bola);
+  const aro = malla(aroDisco, brillo(COLORES_DISCO[1]), 0, 0.15, 0);
+  aro.rotation.x = Math.PI / 2;
+  aro.visible = false;
+  raiz.add(aro);
 
   raiz.sincronizar = (k, t) => {
     raiz.position.set(k.x, 0, -k.y);
     raiz.rotation.y = k.rumbo;
     cuerpo.position.y = k.h;
-    cuerpo.rotation.y = k.derrape ? k.derrape.dir * 0.35 : 0;
+    // Trompo: una vuelta completa en el dibujo; el rumbo del kart no cambia.
+    if (k.trompo > 0) cuerpo.rotation.y = (1 - k.trompo / OBJ.trompo) * Math.PI * 2;
+    else cuerpo.rotation.y = k.derrape ? k.derrape.dir * 0.35 : 0;
+    raiz.visible = !(k.proteccion > 0 && Math.floor(t * 12) % 2 === 0);
+    const disco = k.disco > 0;
+    bola.visible = disco;
+    aro.visible = disco;
+    if (disco) {
+      const n = Math.floor(t * 8);
+      bola.material = brillo(COLORES_DISCO[n % COLORES_DISCO.length]);
+      aro.material = brillo(COLORES_DISCO[(n + 2) % COLORES_DISCO.length]);
+      bola.rotation.y = t * 4;
+    }
     ruedas.forEach((r) => {
       r.rotation.y += k.vel * 0.05;
     });

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { crearPista3D } from './pista3d.js';
 import { crearDecorado } from './decorado3d.js';
 import { crearKart3D } from './kart3d.js';
+import { crearObjetos3D } from './objetos3d.js';
 
 export function crearMundo(pista) {
   const escena = new THREE.Scene();
@@ -13,6 +14,7 @@ export function crearMundo(pista) {
   escena.add(luna);
   escena.add(crearPista3D(pista), crearDecorado(pista));
   let karts = [];
+  let objetos = null;
   return {
     escena,
     // Arma los karts de una carrera, en el orden de sus participantes.
@@ -21,8 +23,15 @@ export function crearMundo(pista) {
       karts = fichas.map(crearKart3D);
       karts.forEach((k) => escena.add(k));
     },
+    // Cajas, calabazas y cáscaras de una carrera.
+    ponerObjetos(estado) {
+      if (objetos) escena.remove(objetos.grupo);
+      objetos = crearObjetos3D(estado);
+      escena.add(objetos.grupo);
+    },
     actualizar(carrera, t) {
       carrera.karts.forEach((k, i) => karts[i].sincronizar(k, t));
+      objetos?.actualizar(carrera.objetos, t);
     },
   };
 }
