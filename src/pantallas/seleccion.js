@@ -3,7 +3,7 @@ import { crearVitrina } from '../dibujo/vitrina.js';
 import { dibujarVistas } from '../dibujo/camaras.js';
 import { el } from './dom.js';
 
-export function pantallaSeleccion(ctx, { cantidad, primera }) {
+export function pantallaSeleccion(ctx, { cantidad, primera, clase = 1 }) {
   const { personajes } = ctx;
   const vitrina = crearVitrina(personajes);
   const sel = crearSeleccion(cantidad, primera);
@@ -43,6 +43,7 @@ export function pantallaSeleccion(ctx, { cantidad, primera }) {
       if (espera <= 0) {
         ctx.ir('carrera', {
           jugadores: sel.jugadores.map((j) => ({ fuente: j.fuente, personaje: personajes[j.cursor].id, ayuda: j.ayuda })),
+          clase,
         });
       }
     },

@@ -6,14 +6,14 @@ import { el } from './dom.js';
 
 const PASO = 1 / 60;
 
-export function pantallaCarrera(ctx, { jugadores }) {
+export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
   const { pista, mundo, personajes, sonido } = ctx;
   // Los niños parten en las últimas posiciones de la parrilla, como en Mario Kart.
   const elegidos = jugadores.map((j) => j.personaje);
   const resto = personajes.map((p) => p.id).filter((id) => !elegidos.includes(id));
   const orden = [...resto, ...elegidos];
   const humanos = jugadores.map((_, j) => resto.length + j);
-  const carrera = crearCarrera(pista, orden, humanos);
+  const carrera = crearCarrera(pista, orden, humanos, Math.random, clase);
   ctx.carrera = carrera;
   const pilotos = carrera.karts.map(() => crearPiloto());
   mundo.ponerKarts(orden.map((id) => personajes.find((p) => p.id === id)));

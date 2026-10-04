@@ -17,7 +17,9 @@ export function pantallaPodio(ctx, { carrera, jugadores, orden, humanos }) {
     <div class="opciones"><div class="opcion elegida">🔁</div><div class="opcion">🏠</div></div>`);
   ctx.capa.append(raiz);
   const [otra, casa] = raiz.querySelectorAll('.opcion');
-  otra.addEventListener('click', () => ctx.ir('carrera', { jugadores }));
+  // Otra carrera con los mismos personajes y la misma velocidad.
+  const otraCarrera = () => ctx.ir('carrera', { jugadores, clase: carrera.clase });
+  otra.addEventListener('click', otraCarrera);
   casa.addEventListener('click', () => ctx.ir('inicio'));
   let t = 0;
   return {
@@ -28,7 +30,7 @@ export function pantallaPodio(ctx, { carrera, jugadores, orden, humanos }) {
       if (t < 1) return;
       for (const f of fuentes) {
         if (f.recien.confirma) {
-          ctx.ir('carrera', { jugadores });
+          otraCarrera();
           return;
         }
         if (f.recien.vuelve) {

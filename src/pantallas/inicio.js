@@ -1,11 +1,12 @@
-import { crearCarrera, pasoCarrera } from '../logica/carrera.js';
+import { crearCarrera, pasoCarrera, VELOCIDADES } from '../logica/carrera.js';
 import { crearPiloto, conducir } from '../logica/pilotos.js';
+import { crearMenu, pulsarMenu } from '../logica/menu.js';
 import { crearCamara, seguir, dibujarVistas } from '../dibujo/camaras.js';
 import { el } from './dom.js';
 
 const PASO = 1 / 60;
 
-// Elegir 1 o 2 jugadores. De fondo corre una carrera de demostración con los 8 personajes.
+// Elegir 1 o 2 jugadores y luego la velocidad. De fondo corre una carrera de demostración con los 8 personajes.
 export function pantallaInicio(ctx) {
   const { pista, mundo, personajes, sonido } = ctx;
   const camara = crearCamara(65);
@@ -25,28 +26,33 @@ export function pantallaInicio(ctx) {
 
   const raiz = el('div', 'inicio', `
     <div class="logo">Olé Kart</div>
-    <div class="opciones"><div class="opcion">👤</div><div class="opcion">👥</div></div>`);
+    <div class="opciones jugadores"><div class="opcion">👤</div><div class="opcion">👥</div></div>
+    <div class="opciones velocidad"><div class="opcion">🐢</div><div class="opcion">🐇</div><div class="opcion">🚀</div></div>`);
   ctx.capa.append(raiz);
-  const opciones = [...raiz.querySelectorAll('.opcion')];
-  let elegida = 0;
-  let elegidaPor; // id de la fuente que confirmó; null si fue con el mouse
-  opciones.forEach((o, i) => o.addEventListener('click', () => {
-    elegida = i;
-    elegidaPor = null;
-  }));
+  const grupos = { jugadores: raiz.querySelector('.jugadores'), velocidad: raiz.querySelector('.velocidad') };
+  const menu = crearMenu(ctx.velocidad ?? 0);
+  for (const [paso, grupo] of Object.entries(grupos)) {
+    [...grupo.children].forEach((o, i) => o.addEventListener('click', () => {
+      if (menu.paso === paso) pulsarMenu(menu, null, { opcion: i });
+    }));
+  }
+  function pintar() {
+    for (const [paso, grupo] of Object.entries(grupos)) {
+      grupo.classList.toggle('oculto', menu.paso !== paso);
+      [...grupo.children].forEach((o, i) => o.classList.toggle('elegida', i === menu[paso]));
+    }
+  }
+  pintar();
 
   return {
     actualizar(fuentes, dt) {
       t += dt;
-      for (const f of fuentes) {
-        if (f.recien.izquierda) elegida = 0;
-        if (f.recien.derecha) elegida = 1;
-        if (f.recien.confirma) elegidaPor = f.id;
-      }
-      opciones.forEach((o, i) => o.classList.toggle('elegida', i === elegida));
-      if (elegidaPor !== undefined) {
+      for (const f of fuentes) pulsarMenu(menu, f.id, f.recien);
+      pintar();
+      if (menu.listo) {
         sonido.reanudar();
-        ctx.ir('seleccion', { cantidad: elegida + 1, primera: elegidaPor });
+        ctx.velocidad = menu.velocidad;
+        ctx.ir('seleccion', { cantidad: menu.jugadores + 1, primera: menu.primera, clase: VELOCIDADES[menu.velocidad] });
         return;
       }
       acumulado += dt;
