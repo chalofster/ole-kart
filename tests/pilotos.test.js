@@ -200,6 +200,21 @@ describe('rivales con objetos', () => {
     expect(decide(c, k, () => 0.2)).toBe(true);
   });
 
+  it('el blanco es el kart más cercano: si es un niño, cuenta la calma aunque haya un rival más lejos', () => {
+    const c = preparar();
+    const k = ubicar(c.karts[0], 100);
+    k.objeto = 'calabaza';
+    ubicar(c.karts[7], 110);
+    ubicar(c.karts[1], 130);
+    expect(decide(c, k, () => 0.5)).toBe(false);
+    expect(decide(c, k, () => 0.2)).toBe(true);
+    k.objeto = 'cascara';
+    ubicar(c.karts[7], 96);
+    ubicar(c.karts[1], 90);
+    expect(decide(c, k, () => 0.5)).toBe(false);
+    expect(decide(c, k, () => 0.2)).toBe(true);
+  });
+
   it('la cáscara la deja si alguien lo sigue de cerca en su línea', () => {
     const c = preparar();
     const k = ubicar(c.karts[0], 200);

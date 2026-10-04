@@ -30,8 +30,10 @@ export function decidirObjeto(piloto, k, carrera, dt, azar = Math.random) {
   const { pista, karts } = carrera;
   const enLinea = (o) => o !== k && !o.termino && Math.abs(o.lateral - k.lateral) < 3;
   const delante = (o) => diferencia(k.s, o.s, pista.largo);
-  const adelante = karts.find((o) => enLinea(o) && delante(o) > 0 && delante(o) < 40);
-  const atras = karts.find((o) => enLinea(o) && delante(o) < 0 && delante(o) > -12);
+  // El blanco es el más cercano en su línea: el que de verdad recibiría la calabaza o pisaría la cáscara.
+  const masCerca = (lista) => lista.reduce((m, o) => (!m || Math.abs(delante(o)) < Math.abs(delante(m)) ? o : m), null);
+  const adelante = masCerca(karts.filter((o) => enLinea(o) && delante(o) > 0 && delante(o) < 40));
+  const atras = masCerca(karts.filter((o) => enLinea(o) && delante(o) < 0 && delante(o) > -12));
   const conCalma = (o) => !!o && (!o.humano || azar() < 1 / 3);
   if (k.objeto === 'disco') return true;
   if (k.objeto === 'aji') return velocidadPrudente(pista, k.s) === 1;
