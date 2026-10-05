@@ -1,14 +1,14 @@
-import * as THREE from 'three';
-import { mate, malla } from './comun.js';
 import { materialCara } from './caras.js';
 import * as personas from './personajes/personas.js';
 import * as animales from './personajes/animales.js';
+import * as fantasia from './personajes/fantasia.js';
 
-// Personajes con el estilo de dibujo animado; los demás usan todavía el dibujo simple de más abajo.
-const NUEVOS = {
-  flamenca: personas.flamenca, bailarin: personas.bailarin, pianista: personas.pianista,
-  gato: animales.gato, pajaro: animales.pajaro, toro: animales.toro,
-};
+// Cada tipo de cuerpo de las fichas tiene su constructor.
+const CONSTRUCTORES = { ...personas, ...animales, ...fantasia };
+
+export function crearPersonaje(cuerpo) {
+  return CONSTRUCTORES[cuerpo.tipo](cuerpo);
+}
 
 export function ponerCara(p, cara, ojosCerrados = false) {
   p.careta.material = materialCara(cara, ojosCerrados);
@@ -36,7 +36,6 @@ function moverExtras(p, t) {
 // Manejando: manos al volante y cabeza que se inclina en las curvas; en el aire, brazos arriba;
 // feliz, rebota (y el pájaro aletea); decidida, se inclina hacia la curva; mareada, la cabeza se bambolea.
 export function animarPiloto(p, gesto, t) {
-  if (!p.careta) return;
   const { cara, inclinacion } = gesto;
   ponerCara(p, cara, gesto.ojosCerrados);
   const pose = cara === 'sorpresa' ? 'arriba' : p.alas && cara === 'feliz' ? 'aletear' : 'volante';
@@ -50,46 +49,8 @@ export function animarPiloto(p, gesto, t) {
 
 // En el podio, todos felices: el primero (puesto 0) baila con los brazos arriba y los otros aplauden.
 export function animarPodio(p, puesto, t) {
-  if (!p.careta) return;
   ponerCara(p, 'feliz', false);
   p.brazos.forEach((b) => posarBrazo(b, puesto === 0 ? 'baile' : 'aplauso', t));
   p.cabeza.rotation.set(puesto === 0 ? Math.sin(t * 6) * 0.2 : 0, 0, 0);
   moverExtras(p, t);
-}
-
-// Todos los personajes miran hacia +x local (el frente del kart).
-const esfera = (r) => new THREE.SphereGeometry(r, 14, 10);
-
-function ojos(g, alto, adelante, separacion, radio = 0.06) {
-  for (const s of [-1, 1]) g.add(malla(esfera(radio), mate(0x111111), adelante, alto, s * separacion));
-}
-
-function calabaza(c) {
-  const g = new THREE.Group();
-  g.add(malla(new THREE.CylinderGeometry(0.3, 0.35, 0.6, 10), mate(0x2d6a4f), 0, 0.3, 0));
-  const cabeza = new THREE.Group();
-  cabeza.position.y = 1;
-  g.add(cabeza);
-  const bola = malla(esfera(0.5), mate(c.color));
-  bola.scale.set(1.1, 0.85, 1.1);
-  cabeza.add(bola);
-  ojos(cabeza, 0.08, 0.5, 0.17, 0.07);
-  cabeza.add(malla(new THREE.BoxGeometry(0.05, 0.06, 0.3), mate(0x111111), 0.52, -0.12, 0));
-  cabeza.add(malla(new THREE.CylinderGeometry(0.05, 0.07, 0.25), mate(0x2d6a4f), 0, 0.5, 0));
-  return g;
-}
-
-function fantasma(c) {
-  const g = new THREE.Group();
-  g.add(malla(new THREE.CylinderGeometry(0.42, 0.5, 0.8, 14), mate(c.color), 0, 0.4, 0));
-  g.add(malla(esfera(0.43), mate(c.color), 0, 0.85, 0));
-  ojos(g, 0.95, 0.38, 0.14, 0.08);
-  for (const s of [-1, 1]) g.add(malla(esfera(0.13), mate(c.color), 0.15, 0.55, s * 0.47));
-  return g;
-}
-
-const TIPOS = { calabaza, fantasma };
-
-export function crearPersonaje(cuerpo) {
-  return (NUEVOS[cuerpo.tipo] ?? TIPOS[cuerpo.tipo])(cuerpo);
 }

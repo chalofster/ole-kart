@@ -39,7 +39,7 @@ export function crearKart3D(ficha) {
     return r;
   });
   const piloto = crearPersonaje(ficha.cuerpo);
-  piloto.position.set(-0.45, piloto.asiento ?? 0.95, 0);
+  piloto.position.set(-0.45, piloto.asiento, 0);
   cuerpo.add(piloto);
   const chispas = [-0.85, 0.85].map((z) => {
     const c = malla(chispa, brillo(0x4cc9f0), -1.25, 0.3, z);

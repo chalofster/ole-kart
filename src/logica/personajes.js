@@ -1,4 +1,4 @@
-// Cada personaje es una ficha: el dibujo arma su cuerpo con figuras simples.
+// Cada personaje es una ficha: el dibujo arma su cuerpo con figuras simples, en estilo de dibujo animado.
 // Los seis después del bailarín son provisionales hasta que los elijan los niños.
 export const PERSONAJES = [
   {
@@ -38,6 +38,9 @@ export const PERSONAJES = [
       cintillo: 0xffffff, teclas: 0x111111, nota: 0xffd166, zapatos: 0x1d3557,
     },
   },
-  { id: 'calabacita', icono: '🎃', kart: 0x7b2cbf, cuerpo: { tipo: 'calabaza', color: 0xff8c1a } },
+  {
+    id: 'calabacita', icono: '🎃', kart: 0x7b2cbf,
+    cuerpo: { tipo: 'calabaza', color: 0xff8c1a, gajos: 0xe07012, hojas: 0x2d6a4f, tallo: 0x40916c },
+  },
   { id: 'fantasmin', icono: '👻', kart: 0x90e0ef, cuerpo: { tipo: 'fantasma', color: 0xffffff } },
 ];

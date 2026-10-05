@@ -33,4 +33,10 @@ describe('personajes', () => {
     expect(porId.trino).toMatchObject({ tipo: 'pajaro', color: 0x2a9d8f, pico: 0xffb703 });
     expect(porId.torito).toMatchObject({ tipo: 'toro', color: 0x8b5a2b, cuernos: 0xf8f9fa, panuelo: 0xd62828 });
   });
+
+  it('la calabacita trae gajos, hojas y tallo; el fantasmín es blanco', () => {
+    const porId = Object.fromEntries(PERSONAJES.map((p) => [p.id, p.cuerpo]));
+    expect(porId.calabacita).toMatchObject({ tipo: 'calabaza', color: 0xff8c1a, gajos: 0xe07012, hojas: 0x2d6a4f, tallo: 0x40916c });
+    expect(porId.fantasmin).toEqual({ tipo: 'fantasma', color: 0xffffff });
+  });
 });

@@ -6,7 +6,7 @@ import { materialCara } from '../src/dibujo/caras.js';
 import { CARAS } from '../src/logica/gestos.js';
 
 // Personajes que ya tienen el estilo nuevo.
-const NUEVOS = ['bailarina', 'bailarin', 'teclita', 'zarpita', 'trino', 'torito'];
+const NUEVOS = PERSONAJES.map((p) => p.id);
 const alto = (o) => new THREE.Box3().setFromObject(o).max.y;
 const centro = (o) => {
   o.updateWorldMatrix(true, true);
@@ -17,14 +17,6 @@ const gesto = (cara, ojosCerrados = false) => ({ cara, ojosCerrados, inclinacion
 describe('personajes en 3D', () => {
   it('los 8 se arman desde su ficha y ninguno mide más de 1,9 sobre su punto de apoyo', () => {
     for (const f of PERSONAJES) expect(alto(crearPersonaje(f.cuerpo))).toBeLessThanOrEqual(1.9);
-  });
-
-  it('los que todavía tienen el dibujo simple no fallan al animarse', () => {
-    const antiguo = crearPersonaje(PERSONAJES.find((p) => !NUEVOS.includes(p.id)).cuerpo);
-    expect(() => {
-      animarPiloto(antiguo, gesto('mareo'), 1);
-      animarPodio(antiguo, 0, 1);
-    }).not.toThrow();
   });
 
   for (const id of NUEVOS) {
