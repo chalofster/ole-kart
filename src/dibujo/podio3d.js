@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { crearPersonaje, animarPodio } from './personajes3d.js';
-import { mate, malla } from './comun.js';
+import { mate, malla, soltar } from './comun.js';
 
 // Los tres primeros sobre el podio, mirando a la cámara: el 1.º salta y baila, los otros aplauden.
 export function crearPodio3D(fichas) {
@@ -30,6 +30,7 @@ export function crearPodio3D(fichas) {
     escena,
     camara,
     figuras,
+    soltar: () => soltar(escena),
     actualizar(t) {
       figuras.forEach((p, i) => {
         p.position.y = lugares[i].alto + (i === 0 ? Math.abs(Math.sin(t * 4)) * 0.4 : 0);

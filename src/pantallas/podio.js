@@ -42,6 +42,8 @@ export function pantallaPodio(ctx, { carrera, jugadores, orden, humanos }) {
     dibujar(renderer) {
       dibujarVistas(renderer, podio.escena, [podio.camara]);
     },
-    salir() {},
+    salir() {
+      podio.soltar();
+    },
   };
 }

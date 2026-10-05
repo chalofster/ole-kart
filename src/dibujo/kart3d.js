@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { crearPersonaje, animarPiloto } from './personajes3d.js';
-import { brillo, malla } from './comun.js';
+import { brillo, malla, soltar } from './comun.js';
 import { dibujo, armarParte } from './estilo.js';
 import { OBJ } from '../logica/objetos.js';
 import { crearGestos, pasoGestos } from '../logica/gestos.js';
@@ -11,6 +11,8 @@ const aroDisco = new THREE.TorusGeometry(1.5, 0.1, 6, 24);
 const rueda = new THREE.CylinderGeometry(0.38, 0.38, 0.32, 14);
 const chispa = new THREE.SphereGeometry(0.22, 8, 6);
 const sombra = new THREE.CircleGeometry(1.4, 20);
+// Figuras que comparten todos los karts: no se liberan al desarmar uno.
+export const GEOMETRIAS_KART = new Set([bolaDisco, aroDisco, rueda, chispa, sombra]);
 const materialSombra = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
 
 // El kart mira hacia +x local. La sombra queda en el suelo aunque el kart salte.
@@ -60,6 +62,8 @@ export function crearKart3D(ficha) {
   raiz.add(aro);
   const gestos = crearGestos();
   Object.assign(raiz, { piloto, chasis });
+  // Al desarmar el kart (nueva carrera, otra pantalla) se liberan sus figuras propias.
+  raiz.soltar = () => soltar(raiz, GEOMETRIAS_KART);
 
   // dt es el tiempo del dibujo: vale 0 en pausa, y entonces nada se mueve.
   raiz.sincronizar = (k, t, dt = 0, eventos = []) => {

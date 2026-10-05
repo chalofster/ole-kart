@@ -54,6 +54,8 @@ export function pantallaSeleccion(ctx, { cantidad, primera, clase = 1 }) {
     dibujar(renderer) {
       dibujarVistas(renderer, vitrina.escena, [vitrina.camara]);
     },
-    salir() {},
+    salir() {
+      vitrina.soltar();
+    },
   };
 }

@@ -19,7 +19,10 @@ export function crearMundo(pista) {
     escena,
     // Arma los karts de una carrera, en el orden de sus participantes.
     ponerKarts(fichas) {
-      karts.forEach((k) => escena.remove(k));
+      karts.forEach((k) => {
+        escena.remove(k);
+        k.soltar();
+      });
       karts = fichas.map(crearKart3D);
       karts.forEach((k) => escena.add(k));
     },

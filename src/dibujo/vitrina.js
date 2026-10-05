@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { crearKart3D } from './kart3d.js';
+import { crearKart3D, GEOMETRIAS_KART } from './kart3d.js';
 import { animarPiloto } from './personajes3d.js';
-import { mate, brillo, malla } from './comun.js';
+import { mate, brillo, malla, soltar } from './comun.js';
 import { crearGestos, pasoGestos, alegrar } from '../logica/gestos.js';
 
 // Kart detenido: en la vitrina los pilotos solo parpadean o se alegran.
@@ -52,6 +52,8 @@ export function crearVitrina(fichas) {
     celebrar(i) {
       alegrar(gestos[i]);
     },
+    // Al salir de la selección se libera lo que se armó para ella.
+    soltar: () => soltar(escena, GEOMETRIAS_KART),
     actualizar(t, dt = 0) {
       karts.forEach((k, i) => {
         k.rotation.y = t * 0.8 + i;
