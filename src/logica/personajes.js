@@ -4,8 +4,9 @@ export const PERSONAJES = [
   {
     id: 'bailarina', icono: '💃', kart: 0xd62828,
     cuerpo: {
-      tipo: 'persona', piel: 0xe0ac69, pelo: 0x2b1d14, peinado: 'mono', ropa: 0xd62828,
-      falda: { color: 0xd62828, lunares: 0xffffff }, adorno: 'flor',
+      tipo: 'flamenca', piel: 0xe0ac69, pelo: 0x2b1d14, vestido: 0xd62828, volante: 0xa4161a, lunares: 0xffffff,
+      manton: 0xfff1d0, fleco: 0xe9c46a, flor: 0xff4d6d, centroFlor: 0xffd166, peineta: 0x8b4a2b, aros: 0xffd166,
+      zapatos: 0x7b2d26,
     },
   },
   {
