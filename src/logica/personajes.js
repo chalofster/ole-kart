@@ -13,9 +13,24 @@ export const PERSONAJES = [
     id: 'bailarin', icono: '🕺', kart: 0x1b1b1b, detalle: 0xd62828,
     cuerpo: { tipo: 'bailarin', piel: 0xc68642, pelo: 0x1b1b1b, chaqueta: 0xc1121f, franjas: 0x111111, zapatos: 0x111111 },
   },
-  { id: 'zarpita', icono: '🐱', kart: 0xf4a261, cuerpo: { tipo: 'gato', color: 0xf4a261 } },
-  { id: 'trino', icono: '🐦', kart: 0x2a9d8f, cuerpo: { tipo: 'pajaro', color: 0x2a9d8f } },
-  { id: 'torito', icono: '🐂', kart: 0x8b5a2b, cuerpo: { tipo: 'toro', color: 0x8b5a2b, panuelo: 0xd62828 } },
+  {
+    id: 'zarpita', icono: '🐱', kart: 0xf4a261,
+    cuerpo: {
+      tipo: 'gato', color: 0xf4a261, barriga: 0xffe8d6, orejas: 0xffb4c2, nariz: 0xff8fab, collar: 0xd62828,
+      cascabel: 0xffd166, punta: 0xffffff, bigotes: 0x2b1a12,
+    },
+  },
+  {
+    id: 'trino', icono: '🐦', kart: 0x2a9d8f,
+    cuerpo: { tipo: 'pajaro', color: 0x2a9d8f, barriga: 0xe9f5db, pico: 0xffb703 },
+  },
+  {
+    id: 'torito', icono: '🐂', kart: 0x8b5a2b,
+    cuerpo: {
+      tipo: 'toro', color: 0x8b5a2b, hocico: 0xd4a373, cuernos: 0xf8f9fa, panuelo: 0xd62828, mechon: 0x5c3a1e,
+      pezunas: 0x3d2b1f,
+    },
+  },
   {
     id: 'teclita', icono: '🎹', kart: 0xf5f5f5, detalle: 0x111111,
     cuerpo: {
