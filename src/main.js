@@ -43,5 +43,5 @@ if (renderer) {
     juego.cuadro(dt);
     mudo.classList.toggle('oculto', sonido.activo());
   });
-  if (import.meta.env.DEV) window.__ole = { juego };
+  if (import.meta.env.DEV) window.__ole = { juego, THREE };
 }

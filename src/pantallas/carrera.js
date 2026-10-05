@@ -126,7 +126,7 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
       }
       sonido.motores(humanos.map((i) => (detenida ? null : carrera.karts[i].vel)));
       mundo.actualizar(carrera, t, dtDibujo, delCuadro);
-      humanos.forEach((i, j) => seguir(camaras[j], carrera.karts[i], dt));
+      humanos.forEach((i, j) => seguir(camaras[j], carrera.karts[i], dtDibujo));
     },
     dibujar(renderer) {
       dibujarVistas(renderer, mundo.escena, camaras);
