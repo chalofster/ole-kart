@@ -6,7 +6,7 @@ import { materialCara } from '../src/dibujo/caras.js';
 import { CARAS } from '../src/logica/gestos.js';
 
 // Personajes que ya tienen el estilo nuevo.
-const NUEVOS = ['bailarina'];
+const NUEVOS = ['bailarina', 'bailarin', 'teclita'];
 const alto = (o) => new THREE.Box3().setFromObject(o).max.y;
 const centro = (o) => {
   o.updateWorldMatrix(true, true);

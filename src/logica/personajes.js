@@ -11,10 +11,7 @@ export const PERSONAJES = [
   },
   {
     id: 'bailarin', icono: '🕺', kart: 0x1b1b1b, detalle: 0xd62828,
-    cuerpo: {
-      tipo: 'persona', piel: 0xc68642, pelo: 0x1b1b1b, peinado: 'corto', ropa: 0xc1121f,
-      chaqueta: { color: 0xc1121f, franjas: 0x111111 },
-    },
+    cuerpo: { tipo: 'bailarin', piel: 0xc68642, pelo: 0x1b1b1b, chaqueta: 0xc1121f, franjas: 0x111111, zapatos: 0x111111 },
   },
   { id: 'zarpita', icono: '🐱', kart: 0xf4a261, cuerpo: { tipo: 'gato', color: 0xf4a261 } },
   { id: 'trino', icono: '🐦', kart: 0x2a9d8f, cuerpo: { tipo: 'pajaro', color: 0x2a9d8f } },
@@ -22,8 +19,8 @@ export const PERSONAJES = [
   {
     id: 'teclita', icono: '🎹', kart: 0xf5f5f5, detalle: 0x111111,
     cuerpo: {
-      tipo: 'persona', piel: 0xf1c27d, pelo: 0x6b3e26, peinado: 'largo', ropa: 0x3a86ff,
-      falda: { color: 0x3a86ff }, adorno: 'nota',
+      tipo: 'pianista', piel: 0xf1c27d, pelo: 0x6b3e26, vestido: 0x3a86ff, volante: 0x265fc4, cuello: 0xffffff,
+      cintillo: 0xffffff, teclas: 0x111111, nota: 0xffd166, zapatos: 0x1d3557,
     },
   },
   { id: 'calabacita', icono: '🎃', kart: 0x7b2cbf, cuerpo: { tipo: 'calabaza', color: 0xff8c1a } },

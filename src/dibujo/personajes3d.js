@@ -4,7 +4,7 @@ import { materialCara } from './caras.js';
 import * as personas from './personajes/personas.js';
 
 // Personajes con el estilo de dibujo animado; los demás usan todavía el dibujo simple de más abajo.
-const NUEVOS = { flamenca: personas.flamenca };
+const NUEVOS = { flamenca: personas.flamenca, bailarin: personas.bailarin, pianista: personas.pianista };
 
 export function ponerCara(p, cara, ojosCerrados = false) {
   p.careta.material = materialCara(cara, ojosCerrados);
@@ -58,51 +58,6 @@ const esfera = (r) => new THREE.SphereGeometry(r, 14, 10);
 
 function ojos(g, alto, adelante, separacion, radio = 0.06) {
   for (const s of [-1, 1]) g.add(malla(esfera(radio), mate(0x111111), adelante, alto, s * separacion));
-}
-
-function persona(c) {
-  const g = new THREE.Group();
-  const torso = c.chaqueta?.color ?? c.ropa;
-  g.add(malla(new THREE.CylinderGeometry(0.32, 0.4, 0.8, 12), mate(torso), 0, 0.4, 0));
-  if (c.chaqueta) {
-    // Franjas negras en V sobre el pecho.
-    for (const s of [-1, 1]) {
-      const franja = malla(new THREE.BoxGeometry(0.05, 0.55, 0.07), mate(c.chaqueta.franjas), 0.36, 0.45, s * 0.12);
-      franja.rotation.x = s * 0.45;
-      g.add(franja);
-    }
-  }
-  if (c.falda) {
-    g.add(malla(new THREE.ConeGeometry(0.75, 0.7, 14), mate(c.falda.color), 0, 0.05, 0));
-    if (c.falda.lunares) {
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
-        g.add(malla(esfera(0.07), mate(c.falda.lunares), Math.cos(a) * 0.46, 0, Math.sin(a) * 0.46));
-      }
-    }
-  }
-  for (const s of [-1, 1]) {
-    const brazo = malla(new THREE.CylinderGeometry(0.09, 0.09, 0.6, 8), mate(torso), 0.35, 0.55, s * 0.32);
-    brazo.rotation.z = -1.1;
-    g.add(brazo);
-  }
-  const cabeza = new THREE.Group();
-  cabeza.position.y = 1.1;
-  g.add(cabeza);
-  cabeza.add(malla(esfera(0.36), mate(c.piel)));
-  ojos(cabeza, 0.05, 0.32, 0.13);
-  for (const s of [-1, 1]) cabeza.add(malla(esfera(0.06), mate(0xf4978e), 0.3, -0.09, s * 0.2));
-  const pelo = malla(new THREE.SphereGeometry(0.39, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), mate(c.pelo), -0.04, 0.03, 0);
-  pelo.rotation.z = 0.35;
-  cabeza.add(pelo);
-  if (c.peinado === 'mono') cabeza.add(malla(esfera(0.2), mate(c.pelo), -0.3, 0.25, 0));
-  if (c.peinado === 'largo') cabeza.add(malla(new THREE.BoxGeometry(0.2, 0.6, 0.66), mate(c.pelo), -0.28, -0.25, 0));
-  if (c.adorno === 'flor') cabeza.add(malla(esfera(0.11), mate(0xff4d6d), -0.2, 0.32, 0.22));
-  if (c.adorno === 'nota') {
-    cabeza.add(malla(esfera(0.08), mate(0x111111), -0.1, 0.38, 0.25));
-    cabeza.add(malla(new THREE.CylinderGeometry(0.02, 0.02, 0.25), mate(0x111111), -0.03, 0.5, 0.25));
-  }
-  return g;
 }
 
 function gato(c) {
@@ -195,7 +150,7 @@ function fantasma(c) {
   return g;
 }
 
-const TIPOS = { persona, gato, pajaro, toro, calabaza, fantasma };
+const TIPOS = { gato, pajaro, toro, calabaza, fantasma };
 
 export function crearPersonaje(cuerpo) {
   return (NUEVOS[cuerpo.tipo] ?? TIPOS[cuerpo.tipo])(cuerpo);
