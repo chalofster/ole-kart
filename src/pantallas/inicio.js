@@ -88,12 +88,14 @@ export function pantallaInicio(ctx) {
         return;
       }
       acumulado += dt;
+      const delCuadro = demo.karts.map(() => []);
       while (acumulado >= PASO) {
         acumulado -= PASO;
-        pasoCarrera(demo, demo.karts.map((k, i) => conducir(pilotos[i], k, pista, PASO, demo)), PASO);
+        const eventos = pasoCarrera(demo, demo.karts.map((k, i) => conducir(pilotos[i], k, pista, PASO, demo)), PASO);
+        eventos.forEach((e, i) => delCuadro[i].push(...e));
       }
       if (demo.estado === 'fin' || demo.tiempo > 120) nuevaDemo();
-      mundo.actualizar(demo, t);
+      mundo.actualizar(demo, t, dt, delCuadro);
       seguir(camara, demo.karts[0], dt);
     },
     dibujar(renderer) {

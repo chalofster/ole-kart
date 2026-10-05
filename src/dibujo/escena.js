@@ -29,8 +29,9 @@ export function crearMundo(pista) {
       objetos = crearObjetos3D(estado);
       escena.add(objetos.grupo);
     },
-    actualizar(carrera, t) {
-      carrera.karts.forEach((k, i) => karts[i].sincronizar(k, t));
+    // dt: tiempo del dibujo (0 en pausa). eventos[i]: lo que le pasó al kart i en este cuadro.
+    actualizar(carrera, t, dt = 0, eventos = null) {
+      carrera.karts.forEach((k, i) => karts[i].sincronizar(k, t, dt, eventos?.[i] ?? []));
       objetos?.actualizar(carrera.objetos, t);
     },
   };

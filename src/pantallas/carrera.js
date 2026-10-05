@@ -50,7 +50,6 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
 
   return {
     actualizar(fuentes, dt) {
-      t += dt;
       const porId = new Map(fuentes.map((f) => [f.id, f]));
       jugadores.forEach((j) => {
         if (porId.get(j.fuente)?.recien.pausa) pausa = !pausa;
@@ -69,6 +68,10 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
         return;
       }
       const detenida = pausa || perdido !== -1;
+      // El reloj del dibujo se detiene en pausa: gestos, parpadeos, ruedas y ruleta quedan quietos.
+      const dtDibujo = detenida ? 0 : dt;
+      t += dtDibujo;
+      const delCuadro = carrera.karts.map(() => []);
       if (perdido !== -1) mostrarAviso(`<div><span class="j${perdido + 1}">🎮</span> ❌</div>`);
       else if (pausa) mostrarAviso('<div>⏸️</div><div class="pequeno">▶️ Start · 🏠 B ⏳</div>');
       else mostrarAviso(null);
@@ -90,6 +93,7 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
             return jugadores[j].ayuda ? ayudar(propia, k, pista) : propia;
           });
           const eventos = pasoCarrera(carrera, intenciones, PASO);
+          eventos.forEach((e, i) => delCuadro[i].push(...e));
           pideObjeto.fill(false);
           humanos.forEach((i) => eventos[i].forEach((e) => sonido.efecto(e)));
         }
@@ -121,7 +125,7 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
         }
       }
       sonido.motores(humanos.map((i) => (detenida ? null : carrera.karts[i].vel)));
-      mundo.actualizar(carrera, t);
+      mundo.actualizar(carrera, t, dtDibujo, delCuadro);
       humanos.forEach((i, j) => seguir(camaras[j], carrera.karts[i], dt));
     },
     dibujar(renderer) {
