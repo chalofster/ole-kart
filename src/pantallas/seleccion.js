@@ -28,13 +28,17 @@ export function pantallaSeleccion(ctx, { cantidad, primera, clase = 1 }) {
   return {
     actualizar(fuentes, dt) {
       t += dt;
+      const antes = sel.jugadores.map((j) => j.listo);
       for (const f of fuentes) procesarSeleccion(sel, f);
+      sel.jugadores.forEach((j, i) => {
+        if (j.listo && !antes[i]) vitrina.celebrar(j.cursor);
+      });
       if (sel.volver) {
         ctx.ir('inicio');
         return;
       }
       pintar();
-      vitrina.actualizar(t);
+      vitrina.actualizar(t, dt);
       if (!todosListos(sel)) {
         espera = null;
         return;
