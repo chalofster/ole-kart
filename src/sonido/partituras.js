@@ -61,4 +61,41 @@ export const FERIA = {
   },
 };
 
-export const PARTITURAS = { noche: NOCHE, feria: FERIA };
+// Guitarra de surf: cada nota suena dos semicorcheas seguidas (8 notas por compás).
+function tremolo(compases) {
+  return Object.fromEntries(compases.flatMap((notas, c) => notas.flatMap((n, i) => [[c * 16 + i * 2, n], [c * 16 + i * 2 + 1, n]])));
+}
+
+// Playa: surf original en mi mayor, rápido, con redobles al final de cada frase (compases 4 y 8).
+export const PLAYA = {
+  tempo: 156,
+  compases: 8,
+  // Mi, mi, la, la, si, la, mi y si mayor.
+  acordes: [
+    [52, 56, 59], [52, 56, 59], [57, 61, 64], [57, 61, 64],
+    [59, 63, 66], [57, 61, 64], [52, 56, 59], [59, 63, 66],
+  ],
+  bajos: [40, 40, 45, 45, 47, 45, 40, 47],
+  ritmoBajo: { 0: 0, 2: 0, 4: 7, 6: 0, 8: 12, 10: 0, 12: 7, 14: 0 },
+  golpesAcorde: [4, 12],
+  bateria: { bombo: [0, 8], palmas: [4, 12], platillo: [0, 2, 4, 6, 8, 10, 12, 14] },
+  rellenos: Object.fromEntries([...Array(8).keys()].flatMap((i) => [[56 + i, ['redoble']], [120 + i, ['redoble']]])),
+  melodia: tremolo([
+    [76, 76, 76, 76, 80, 80, 80, 80],
+    [83, 83, 83, 83, 81, 81, 80, 80],
+    [81, 81, 81, 81, 85, 85, 85, 85],
+    [83, 83, 81, 81, 80, 80, 78, 78],
+    [78, 78, 78, 78, 83, 83, 83, 83],
+    [81, 81, 81, 81, 80, 80, 78, 78],
+    [76, 76, 80, 80, 83, 83, 88, 88],
+    [87, 87, 83, 83, 78, 78, 75, 75],
+  ]),
+  escala: [4, 6, 8, 9, 11, 1, 3],
+  sonidos: {
+    bajo: { onda: 'sawtooth', dur: 0.14, vol: 0.16 },
+    acorde: { onda: 'square', dur: 0.08, vol: 0.03 },
+    melodia: { onda: 'square', dur: 0.08, vol: 0.06 },
+  },
+};
+
+export const PARTITURAS = { noche: NOCHE, feria: FERIA, playa: PLAYA };
