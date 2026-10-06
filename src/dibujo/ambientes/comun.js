@@ -58,3 +58,14 @@ export function astro(pos, color, radio = 30) {
 
 // Para los lugares de lugaresLibres: deja fuera los que chocarían con el arco de meta.
 export const lejosDeLaMeta = (pista) => (l) => l.s > 10 && l.s < pista.largo - 10;
+
+// Para los lugares de lugaresLibres: deja fuera los que quedan a menos de minimo de otro ya elegido. Adentro
+// de una curva los lugares se juntan, y las piezas grandes (casetas, casas) quedarían una encima de otra.
+export function separados(minimo) {
+  const elegidos = [];
+  return (l) => {
+    if (elegidos.some((e) => Math.hypot(e.x - l.x, e.y - l.y) < minimo)) return false;
+    elegidos.push(l);
+    return true;
+  };
+}

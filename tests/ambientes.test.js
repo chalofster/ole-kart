@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { PISTAS } from '../src/logica/pistas.js';
 import { crearPista, puntoEn } from '../src/logica/pista.js';
 import { AMBIENTES } from '../src/dibujo/ambientes/index.js';
-import { juntar, colocar } from '../src/dibujo/ambientes/comun.js';
+import { juntar, colocar, separados } from '../src/dibujo/ambientes/comun.js';
 import { PARTITURAS } from '../src/sonido/partituras.js';
 import { crearMundo } from '../src/dibujo/escena.js';
 
@@ -48,6 +48,11 @@ describe('piezas del decorado', () => {
     expect(derecha.pos[1]).toBeCloseTo(1, 6);
     expect(derecha.pos[2]).toBeCloseTo(-5, 6);
     expect(adelante.rot[1]).toBeCloseTo(Math.PI / 2, 6);
+  });
+
+  it('separados deja fuera los lugares que quedan encima de otro ya elegido (adentro de las curvas)', () => {
+    const lugares = [{ x: 0, y: 0 }, { x: 6, y: 0 }, { x: 12, y: 0 }, { x: 12, y: 8 }, { x: 0, y: 11 }];
+    expect(lugares.filter(separados(10))).toEqual([{ x: 0, y: 0 }, { x: 12, y: 0 }, { x: 0, y: 11 }]);
   });
 
   it('juntar deja una sola malla por color', () => {
