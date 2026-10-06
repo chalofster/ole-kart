@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { crearPista, NOCHE, diferencia, RAMPA } from '../src/logica/pista.js';
-import { crearKart, KART, TURBO_PISO } from '../src/logica/kart.js';
+import { crearPista, NOCHE } from '../src/logica/pista.js';
+import { crearKart, KART } from '../src/logica/kart.js';
 import { azarConSemilla } from '../src/logica/azar.js';
 import {
-  sortearObjeto, crearObjetos, prepararKart, golpear, usarObjeto, pasoObjetos, OBJ, FILAS, LATERALES, TIPOS,
+  sortearObjeto, crearObjetos, prepararKart, golpear, usarObjeto, pasoObjetos, OBJ, LATERALES, TIPOS,
 } from '../src/logica/objetos.js';
 
 const pista = crearPista(NOCHE);
@@ -45,22 +45,15 @@ describe('sorteo según la posición', () => {
 });
 
 describe('cajas', () => {
-  it('hay cuatro filas de cuatro, lejos de las flechas de turbo y de la rampa', () => {
+  it('las cajas salen de las filas de la pista, cuatro por fila', () => {
     const { cajas } = crearObjetos(pista);
-    expect(cajas).toHaveLength(FILAS.length * LATERALES.length);
-    for (const s of FILAS) {
-      for (const t of pista.turbos) {
-        expect(Math.abs(diferencia(t, s, pista.largo))).toBeGreaterThan(20);
-        expect(Math.abs(diferencia(t + TURBO_PISO.largo, s, pista.largo))).toBeGreaterThan(20);
-      }
-      expect(Math.abs(diferencia(pista.rampa, s, pista.largo))).toBeGreaterThan(20);
-      expect(Math.abs(diferencia(pista.rampa + RAMPA.largo, s, pista.largo))).toBeGreaterThan(20);
-    }
+    expect(cajas).toHaveLength(pista.filas.length * LATERALES.length);
+    expect(new Set(cajas.map((c) => c.s))).toEqual(new Set(pista.filas));
   });
 
   it('da un objeto con ruleta a quien no tiene, se rompe y vuelve a los 2 s', () => {
     const estado = crearObjetos(pista);
-    const k = kartEn(FILAS[0], LATERALES[0]);
+    const k = kartEn(pista.filas[0], LATERALES[0]);
     const eventos = avanzar(estado, [k], dt);
     expect(eventos[0]).toContain('caja');
     expect(TIPOS).toContain(k.objeto);
@@ -72,15 +65,15 @@ describe('cajas', () => {
 
   it('si dos karts la tocan en el mismo paso, solo uno recibe objeto', () => {
     const estado = crearObjetos(pista);
-    const a = kartEn(FILAS[1], LATERALES[2]);
-    const b = kartEn(FILAS[1], LATERALES[2]);
+    const a = kartEn(pista.filas[1], LATERALES[2]);
+    const b = kartEn(pista.filas[1], LATERALES[2]);
     avanzar(estado, [a, b], dt);
     expect([a.objeto, b.objeto].filter(Boolean)).toHaveLength(1);
   });
 
   it('a quien ya tiene un objeto se le rompe la caja sin darle otro', () => {
     const estado = crearObjetos(pista);
-    const k = kartEn(FILAS[0], LATERALES[1], { objeto: 'aji' });
+    const k = kartEn(pista.filas[0], LATERALES[1], { objeto: 'aji' });
     avanzar(estado, [k], dt);
     expect(k.objeto).toBe('aji');
     expect(estado.cajas[1].vuelve).toBeGreaterThan(0);
@@ -88,7 +81,7 @@ describe('cajas', () => {
 
   it('un kart en el aire no toca las cajas', () => {
     const estado = crearObjetos(pista);
-    const k = kartEn(FILAS[0], LATERALES[0], { enAire: true, h: 2 });
+    const k = kartEn(pista.filas[0], LATERALES[0], { enAire: true, h: 2 });
     avanzar(estado, [k], dt);
     expect(k.objeto).toBeNull();
     expect(estado.cajas[0].vuelve).toBe(0);

@@ -41,7 +41,7 @@ describe('crearPista', () => {
 
   it('ubica los turbos y la rampa donde se definieron', () => {
     [70, 381, 827].forEach((s, i) => expect(Math.abs(pista.turbos[i] - s)).toBeLessThan(4));
-    expect(Math.abs(pista.rampa - 440)).toBeLessThan(4);
+    expect(Math.abs(pista.rampas[0] - 440)).toBeLessThan(4);
   });
 
   it('reparte 16 puntos de control desde la meta', () => {
@@ -111,7 +111,7 @@ describe('proyectar', () => {
 
 describe('alturaDelPiso', () => {
   it('la rampa sube de 0 a su altura y fuera de ella el piso es plano', () => {
-    const r = pista.rampa;
+    const r = pista.rampas[0];
     expect(alturaDelPiso(pista, r - 1, 0)).toBe(0);
     expect(alturaDelPiso(pista, r + RAMPA.largo / 2, 0)).toBeCloseTo(RAMPA.alto / 2, 6);
     expect(alturaDelPiso(pista, r + RAMPA.largo, 0)).toBeCloseTo(RAMPA.alto, 6);

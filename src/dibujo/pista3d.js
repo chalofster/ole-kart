@@ -31,6 +31,24 @@ function cinta(pista, borde, colorDe) {
 
 const lado = (m, lateral, h) => [m.x + m.nx * lateral, h, m.y + m.ny * lateral];
 
+// Rampa: cuña que sube de 0 a RAMPA.alto desde la distancia s.
+function rampa3D(pista, s, color) {
+  const a = puntoEn(pista, s);
+  const b = puntoEn(pista, s + RAMPA.largo);
+  const m0 = pista.muestras[a.indice];
+  const v = (p, lateral, h) => [p.x + m0.nx * lateral, h, -(p.y + m0.ny * lateral)];
+  const vertices = [
+    ...v(a, -MEDIO_ANCHO, 0.03), ...v(a, MEDIO_ANCHO, 0.03),
+    ...v(b, -MEDIO_ANCHO, RAMPA.alto), ...v(b, MEDIO_ANCHO, RAMPA.alto),
+    ...v(b, -MEDIO_ANCHO, 0), ...v(b, MEDIO_ANCHO, 0),
+  ];
+  const cuna = new THREE.BufferGeometry();
+  cuna.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  cuna.setIndex([0, 2, 1, 1, 2, 3, 2, 4, 3, 3, 4, 5, 0, 4, 2, 1, 3, 5]);
+  cuna.computeVertexNormals();
+  return new THREE.Mesh(cuna, new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
+}
+
 export function crearPista3D(pista) {
   const grupo = new THREE.Group();
 
@@ -91,21 +109,7 @@ export function crearPista3D(pista) {
     }
   }
 
-  // Rampa: cuña amarilla que sube de 0 a RAMPA.alto.
-  const a = puntoEn(pista, pista.rampa);
-  const b = puntoEn(pista, pista.rampa + RAMPA.largo);
-  const m0 = pista.muestras[a.indice];
-  const v = (p, lateral, h) => [p.x + m0.nx * lateral, h, -(p.y + m0.ny * lateral)];
-  const vertices = [
-    ...v(a, -MEDIO_ANCHO, 0.03), ...v(a, MEDIO_ANCHO, 0.03),
-    ...v(b, -MEDIO_ANCHO, RAMPA.alto), ...v(b, MEDIO_ANCHO, RAMPA.alto),
-    ...v(b, -MEDIO_ANCHO, 0), ...v(b, MEDIO_ANCHO, 0),
-  ];
-  const cuna = new THREE.BufferGeometry();
-  cuna.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  cuna.setIndex([0, 2, 1, 1, 2, 3, 2, 4, 3, 3, 4, 5, 0, 4, 2, 1, 3, 5]);
-  cuna.computeVertexNormals();
-  grupo.add(new THREE.Mesh(cuna, new THREE.MeshLambertMaterial({ color: 0xffd166, side: THREE.DoubleSide })));
+  for (const s of pista.rampas) grupo.add(rampa3D(pista, s, 0xffd166));
 
   return grupo;
 }

@@ -9,8 +9,7 @@ export const OBJ = {
   calabazaVel: 1.4, calabazaVida: 6, cascaraAtras: 2.5, cascaraDueno: 1, maxCascaras: 10,
   alcance: KART.radio + 0.8,
 };
-// Filas de cajas: distancia por la pista y desplazamiento lateral de cada caja.
-export const FILAS = [35, 410, 660, 790];
+// Cada pista trae sus filas de cajas (pista.filas); acá, el desplazamiento lateral de cada caja de una fila.
 export const LATERALES = [-4.5, -1.5, 1.5, 4.5];
 // Probabilidades en el orden de TIPOS, según el puesto: más ayuda para quien va atrás.
 export const REPARTO = {
@@ -30,7 +29,7 @@ export function sortearObjeto(puesto, azar) {
 }
 
 export function crearObjetos(pista) {
-  const cajas = FILAS.flatMap((s) => LATERALES.map((lateral) => {
+  const cajas = pista.filas.flatMap((s) => LATERALES.map((lateral) => {
     const p = puntoEn(pista, s, lateral);
     return { s, lateral, x: p.x, y: p.y, vuelve: 0 };
   }));

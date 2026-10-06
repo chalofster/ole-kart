@@ -6,7 +6,10 @@ export const VALLA = 10.5;             // distancia de cada valla a la curva cen
 export const RAMPA = { largo: 6, alto: 1.5 };
 export const PUNTOS_DE_CONTROL = 16;
 
-// "Noche de Thriller", en sentido antihorario. El primer punto es la meta.
+// Cada recorrido: puntos de la curva central (el primero es la meta), turbos y rampas (puntos junto
+// al camino, que se proyectan sobre él) y filas de cajas (distancias desde la meta).
+
+// "Noche de Thriller", en sentido antihorario.
 // Forma revisada: radio mínimo ~12 (la horquilla), vallas sin pliegues, partes separadas por más de 37.
 export const NOCHE = {
   puntos: [
@@ -16,7 +19,8 @@ export const NOCHE = {
     [10, 42], [-20, 42], [-35, 36], [-41, 21], [-35, 6], [-20, 0], [5, 0],
   ],
   turbos: [[110, 0], [130, 151], [20, 42]],
-  rampa: [70, 151],
+  rampas: [[70, 151]],
+  filas: [35, 410, 660, 790],
 };
 
 export function diferencia(desde, hasta, largo) {
@@ -88,7 +92,8 @@ export function crearPista(def) {
 
   const pista = { muestras, largo, paso };
   pista.turbos = def.turbos.map(([x, y]) => proyectar(pista, x, y).s);
-  pista.rampa = proyectar(pista, def.rampa[0], def.rampa[1]).s;
+  pista.rampas = def.rampas.map(([x, y]) => proyectar(pista, x, y).s);
+  pista.filas = def.filas;
   pista.controles = Array.from({ length: PUNTOS_DE_CONTROL }, (_, i) => (i * largo) / PUNTOS_DE_CONTROL);
   return pista;
 }
@@ -134,9 +139,12 @@ export function puntoEn(pista, s, lateral = 0) {
   };
 }
 
-// La rampa sube en línea recta y termina de golpe: el kart sale volando.
+// Cada rampa sube en línea recta y termina de golpe: el kart sale volando.
 export function alturaDelPiso(pista, s, lateral) {
-  const d = diferencia(pista.rampa, s, pista.largo);
-  if (Math.abs(lateral) > MEDIO_ANCHO || d < 0 || d > RAMPA.largo) return 0;
-  return (RAMPA.alto * d) / RAMPA.largo;
+  if (Math.abs(lateral) > MEDIO_ANCHO) return 0;
+  for (const r of pista.rampas) {
+    const d = diferencia(r, s, pista.largo);
+    if (d >= 0 && d <= RAMPA.largo) return (RAMPA.alto * d) / RAMPA.largo;
+  }
+  return 0;
 }

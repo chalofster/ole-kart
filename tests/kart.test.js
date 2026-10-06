@@ -194,7 +194,7 @@ describe('turbos', () => {
 
 describe('rampa', () => {
   it('lanza el kart en un salto corto y lo deja otra vez sobre la pista', () => {
-    const k = crearKart(pista, pista.rampa - 20);
+    const k = crearKart(pista, pista.rampas[0] - 20);
     k.vel = KART.velMax;
     let alturaMaxima = 0;
     const eventos = [];
