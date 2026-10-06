@@ -1,6 +1,6 @@
 import { crearPodio3D } from '../dibujo/podio3d.js';
 import { dibujarVistas } from '../dibujo/camaras.js';
-import { crearOpcionesPodio, pulsarPodio, avanzarPodio } from '../logica/podio.js';
+import { crearOpcionesPodio, pulsarPodio, avanzarPodio, cuadroPodio } from '../logica/podio.js';
 import { PISTAS, indicePista } from '../logica/pistas.js';
 import { crearTarjetas } from './tarjetas.js';
 import { el } from './dom.js';
@@ -56,9 +56,7 @@ export function pantallaPodio(ctx, { carrera, jugadores, orden, humanos }) {
       // El primer segundo se ignora: así el botón que se tenía apretado al llegar no salta el podio.
       if (t < 1) return;
       if (hacer(avanzarPodio(opciones, dt))) return;
-      for (const f of fuentes) {
-        if (hacer(pulsarPodio(opciones, f.recien))) return;
-      }
+      if (hacer(cuadroPodio(opciones, fuentes))) return;
       pintar();
     },
     dibujar(renderer) {

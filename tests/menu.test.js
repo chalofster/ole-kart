@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { crearMenu, pulsarMenu, avanzarMenu } from '../src/logica/menu.js';
-import { RULETA } from '../src/logica/eleccion.js';
+import { crearMenu, pulsarMenu, avanzarMenu, cuadroMenu } from '../src/logica/menu.js';
+import { RULETA, RESULTADO } from '../src/logica/eleccion.js';
 
 // Lleva el menú hasta el paso de pista con A del control indicado.
 function hastaPista(m, id = 'mando-0') {
@@ -78,6 +78,12 @@ describe('menú de inicio', () => {
     avanzarMenu(m, RULETA / 2);
     expect(m.listo).toBe(false);
     avanzarMenu(m, RULETA);
+    // La pista que salió se ve un momento antes de seguir.
+    expect(m.listo).toBe(false);
+    expect(m.eleccion.marco).toBe(2);
+    pulsarMenu(m, 'mando-0', { vuelve: true });
+    expect(m.paso).toBe('pista');
+    avanzarMenu(m, RESULTADO);
     expect(m.listo).toBe(true);
     expect(m.eleccion.elegida).toBe(2);
   });
@@ -108,5 +114,19 @@ describe('menú de inicio', () => {
     expect(m.primera).toBe(null);
     pulsarMenu(m, 'mando-1', { confirma: true });
     expect(m).toMatchObject({ listo: true, primera: 'mando-1' });
+  });
+
+  it('dos A en el mismo cuadro en la velocidad llevan al paso de pista sin elegir: los niños ven las tarjetas', () => {
+    const m = crearMenu(0, { pistas: 3 });
+    pulsarMenu(m, 'mando-0', { confirma: true });
+    cuadroMenu(m, [{ id: 'mando-0', recien: { confirma: true } }, { id: 'mando-1', recien: { confirma: true } }]);
+    expect(m).toMatchObject({ paso: 'pista', listo: false });
+    expect(m.eleccion.elegida).toBe(null);
+  });
+
+  it('en un cuadro, cuentan las pulsaciones de todos los controles hasta que una cambia de paso', () => {
+    const m = crearMenu(0, { pistas: 3 });
+    cuadroMenu(m, [{ id: 'mando-0', recien: { derecha: true } }, { id: 'mando-1', recien: { confirma: true } }]);
+    expect(m).toMatchObject({ paso: 'velocidad', jugadores: 1, primera: 'mando-1' });
   });
 });

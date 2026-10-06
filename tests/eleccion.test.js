@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { crearEleccion, pulsarEleccion, avanzarEleccion, RULETA } from '../src/logica/eleccion.js';
+import { crearEleccion, pulsarEleccion, avanzarEleccion, RULETA, RESULTADO } from '../src/logica/eleccion.js';
+
+// La ruleta de 🎲 completa: gira y luego muestra la pista que salió.
+function terminar(e) {
+  avanzarEleccion(e, RULETA);
+  avanzarEleccion(e, RESULTADO);
+}
 
 describe('elegir pista', () => {
   it('parte donde se indica y la cruceta recorre las pistas y 🎲 sin pasarse de los bordes', () => {
@@ -49,14 +55,25 @@ describe('elegir pista', () => {
     expect(e.elegida).toBe(null);
     expect(vistos.size).toBeGreaterThan(1);
     avanzarEleccion(e, RULETA);
-    expect(e).toMatchObject({ elegida: 2, marco: 2, ruleta: 0 });
+    expect(e).toMatchObject({ marco: 2, ruleta: 0, elegida: null });
+  });
+
+  it('🎲: al detenerse, la pista que salió se ve un momento, sin hacer caso a pulsaciones, y recién entonces queda elegida', () => {
+    const e = crearEleccion(3, { marco: 3, ultima: 1 });
+    pulsarEleccion(e, { confirma: true }, () => 0.6);
+    avanzarEleccion(e, RULETA);
+    pulsarEleccion(e, { izquierda: true, confirma: true });
+    avanzarEleccion(e, RESULTADO / 2);
+    expect(e).toMatchObject({ marco: 2, elegida: null });
+    avanzarEleccion(e, RESULTADO);
+    expect(e).toMatchObject({ marco: 2, elegida: 2 });
   });
 
   it('🎲 nunca repite la última pista; con una sola alternativa sale esa', () => {
     for (const azar of [0, 0.5, 0.999]) {
       const e = crearEleccion(2, { marco: 2, ultima: 0 });
       pulsarEleccion(e, { confirma: true }, () => azar);
-      avanzarEleccion(e, RULETA);
+      terminar(e);
       expect(e.elegida).toBe(1);
     }
   });
@@ -66,13 +83,13 @@ describe('elegir pista', () => {
     for (const azar of [0, 0.4, 0.8]) {
       const e = crearEleccion(3, { marco: 3 });
       pulsarEleccion(e, { confirma: true }, () => azar);
-      avanzarEleccion(e, RULETA);
+      terminar(e);
       salen.add(e.elegida);
     }
     expect(salen).toEqual(new Set([0, 1, 2]));
     const sola = crearEleccion(1, { marco: 1, ultima: 0 });
     pulsarEleccion(sola, { confirma: true }, () => 0.5);
-    avanzarEleccion(sola, RULETA);
+    terminar(sola);
     expect(sola.elegida).toBe(0);
   });
 });

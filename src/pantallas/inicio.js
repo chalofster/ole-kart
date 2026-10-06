@@ -1,6 +1,6 @@
 import { crearCarrera, pasoCarrera, VELOCIDADES } from '../logica/carrera.js';
 import { crearPiloto, conducir } from '../logica/pilotos.js';
-import { crearMenu, pulsarMenu, avanzarMenu } from '../logica/menu.js';
+import { crearMenu, pulsarMenu, avanzarMenu, cuadroMenu } from '../logica/menu.js';
 import { PISTAS, indicePista } from '../logica/pistas.js';
 import { guardarCancion, borrarCancion } from '../sonido/cancion.js';
 import { crearCamara, seguir, dibujarVistas } from '../dibujo/camaras.js';
@@ -85,7 +85,7 @@ export function pantallaInicio(ctx) {
   return {
     actualizar(fuentes, dt) {
       t += dt;
-      for (const f of fuentes) pulsarMenu(menu, f.id, f.recien);
+      cuadroMenu(menu, fuentes);
       avanzarMenu(menu, dt);
       pintar();
       pintarCancion();

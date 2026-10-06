@@ -1,4 +1,4 @@
-import { crearEleccion, pulsarEleccion, avanzarEleccion } from './eleccion.js';
+import { crearEleccion, pulsarEleccion, avanzarEleccion, girando } from './eleccion.js';
 
 // Botones del podio, de izquierda a derecha: 🔁 otra carrera en la misma pista, 🗺️ otra pista y 🏠 inicio.
 export const BOTONES = ['otra', 'pistas', 'inicio'];
@@ -14,7 +14,7 @@ const aLaCarrera = (o) => (o.eleccion.elegida === null ? null : { ir: 'carrera',
 // opcion: el botón (o, con las pistas abiertas, la tarjeta) tocado con el mouse.
 export function pulsarPodio(o, { izquierda = false, derecha = false, confirma = false, vuelve = false, opcion } = {}, azar = Math.random) {
   if (o.eleccion) {
-    if (o.eleccion.ruleta > 0) return null;
+    if (girando(o.eleccion)) return null;
     if (vuelve) {
       o.eleccion = null;
       return null;
@@ -38,9 +38,20 @@ export function pulsarPodio(o, { izquierda = false, derecha = false, confirma = 
   return null;
 }
 
+// Un cuadro: las pulsaciones de todas las fuentes, en orden. Si una abre o cierra las pistas, el resto del
+// cuadro no cuenta: así dos A al mismo tiempo sobre 🗺️ no eligen una pista sin mirar.
+export function cuadroPodio(o, fuentes, azar = Math.random) {
+  for (const f of fuentes) {
+    const abiertas = o.eleccion !== null;
+    const accion = pulsarPodio(o, f.recien, azar);
+    if (accion || (o.eleccion !== null) !== abiertas) return accion;
+  }
+  return null;
+}
+
 // La ruleta de 🎲 avanza con el tiempo; al detenerse, lleva a la carrera.
 export function avanzarPodio(o, dt) {
-  if (!o.eleccion || o.eleccion.ruleta <= 0) return null;
+  if (!o.eleccion || !girando(o.eleccion)) return null;
   avanzarEleccion(o.eleccion, dt);
   return aLaCarrera(o);
 }

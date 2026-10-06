@@ -1,4 +1,4 @@
-import { crearEleccion, pulsarEleccion, avanzarEleccion } from './eleccion.js';
+import { crearEleccion, pulsarEleccion, avanzarEleccion, girando } from './eleccion.js';
 
 // Menú de inicio en tres pasos: cuántos juegan (👤 👥), a qué velocidad (🐢 🐇 🚀) y en qué pista (🗺️).
 // velocidad: índice en VELOCIDADES; parte en la última usada. pistas: cuántas hay; pista: dónde parte el
@@ -14,7 +14,7 @@ export function crearMenu(velocidad = 0, { pistas = 1, pista = 0, ultima = null 
 // opcion: el ícono tocado con el mouse, que además confirma. azar: para 🎲.
 export function pulsarMenu(m, id, { izquierda = false, derecha = false, confirma = false, vuelve = false, opcion } = {}, azar = Math.random) {
   if (m.paso === 'pista') {
-    if (m.listo || m.eleccion.ruleta > 0) return m;
+    if (m.listo || girando(m.eleccion)) return m;
     if (vuelve) {
       m.paso = 'velocidad';
       return m;
@@ -42,6 +42,17 @@ export function pulsarMenu(m, id, { izquierda = false, derecha = false, confirma
   } else {
     if (m.primera === null) m.primera = id;
     m.paso = 'pista';
+  }
+  return m;
+}
+
+// Un cuadro: las pulsaciones de todas las fuentes, en orden. Si una cambia de paso, el resto del cuadro no
+// cuenta: así dos A al mismo tiempo no se saltan un paso (por ejemplo, el de la pista).
+export function cuadroMenu(m, fuentes, azar = Math.random) {
+  for (const f of fuentes) {
+    const paso = m.paso;
+    pulsarMenu(m, f.id, f.recien, azar);
+    if (m.paso !== paso) break;
   }
   return m;
 }

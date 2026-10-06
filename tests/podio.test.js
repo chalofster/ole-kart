@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { crearOpcionesPodio, pulsarPodio, avanzarPodio, BOTONES } from '../src/logica/podio.js';
-import { RULETA } from '../src/logica/eleccion.js';
+import { crearOpcionesPodio, pulsarPodio, avanzarPodio, cuadroPodio, BOTONES } from '../src/logica/podio.js';
+import { RULETA, RESULTADO } from '../src/logica/eleccion.js';
+
+const A = { recien: { confirma: true } };
 
 describe('botones del podio', () => {
   it('el marco parte en 🔁: A repite la carrera en la misma pista', () => {
@@ -38,7 +40,11 @@ describe('botones del podio', () => {
     expect(avanzarPodio(o, RULETA / 2)).toBe(null);
     expect(pulsarPodio(o, { vuelve: true })).toBe(null);
     expect(o.eleccion).not.toBe(null);
-    expect(avanzarPodio(o, RULETA)).toEqual({ ir: 'carrera', pista: 0 });
+    // Se detiene en la pista que salió y la muestra un momento, también sin hacer caso a B.
+    expect(avanzarPodio(o, RULETA)).toBe(null);
+    expect(pulsarPodio(o, { vuelve: true })).toBe(null);
+    expect(o.eleccion.marco).toBe(0);
+    expect(avanzarPodio(o, RESULTADO)).toEqual({ ir: 'carrera', pista: 0 });
   });
 
   it('con el mouse, tocar 🔁 o 🏠 actúa de inmediato', () => {
@@ -55,5 +61,16 @@ describe('botones del podio', () => {
   it('sin ruleta girando, avanzar no hace nada', () => {
     const o = crearOpcionesPodio(3, 0);
     expect(avanzarPodio(o, 1)).toBe(null);
+  });
+
+  it('dos A en el mismo cuadro sobre 🗺️ abren las pistas sin elegir ninguna', () => {
+    const o = crearOpcionesPodio(3, 2);
+    pulsarPodio(o, { derecha: true });
+    expect(cuadroPodio(o, [A, A])).toBe(null);
+    expect(o.eleccion).toMatchObject({ marco: 2, elegida: null });
+  });
+
+  it('dos A en el mismo cuadro sobre 🔁 repiten la carrera una sola vez', () => {
+    expect(cuadroPodio(crearOpcionesPodio(3, 2), [A, A])).toEqual({ ir: 'carrera', pista: 2 });
   });
 });

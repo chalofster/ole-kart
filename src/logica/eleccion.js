@@ -1,15 +1,20 @@
 // Elegir pista: el marco recorre las tarjetas de las pistas y, al final, 🎲.
 // cantidad: cuántas pistas hay (el índice cantidad es 🎲). ultima: la última pista corrida (🎲 no la repite), o null.
 export const RULETA = 1;
+// Al detenerse, la pista que salió se ve este tiempo antes de quedar elegida.
+export const RESULTADO = 0.7;
+
+// Mientras gira la ruleta o se ve su resultado, la elección no responde.
+export const girando = (e) => e.ruleta > 0 || e.resultado > 0;
 
 export function crearEleccion(cantidad, { marco = 0, ultima = null } = {}) {
-  return { cantidad, marco, ultima, ruleta: 0, destino: null, elegida: null };
+  return { cantidad, marco, ultima, ruleta: 0, resultado: 0, destino: null, elegida: null };
 }
 
 // Una pulsación. opcion: la tarjeta tocada con el mouse, que además confirma.
-// Mientras gira la ruleta, o si ya se eligió, no responde.
+// Mientras gira la ruleta o se ve su resultado, o si ya se eligió, no responde.
 export function pulsarEleccion(e, { izquierda = false, derecha = false, confirma = false, opcion } = {}, azar = Math.random) {
-  if (e.ruleta > 0 || e.elegida !== null) return e;
+  if (girando(e) || e.elegida !== null) return e;
   if (opcion !== undefined) {
     if (opcion < 0 || opcion > e.cantidad) return e;
     e.marco = opcion;
@@ -30,15 +35,22 @@ export function pulsarEleccion(e, { izquierda = false, derecha = false, confirma
   return e;
 }
 
-// La ruleta de 🎲: el marco salta de tarjeta en tarjeta y, al terminar, se detiene en el destino.
+// La ruleta de 🎲: el marco salta de tarjeta en tarjeta, se detiene en el destino y, tras mostrarlo un
+// momento, la pista queda elegida.
 export function avanzarEleccion(e, dt) {
-  if (e.ruleta <= 0) return e;
-  e.ruleta = Math.max(0, e.ruleta - dt);
-  if (e.ruleta === 0) {
+  if (e.ruleta > 0) {
+    e.ruleta = Math.max(0, e.ruleta - dt);
+    if (e.ruleta > 0) {
+      e.marco = Math.floor((RULETA - e.ruleta) * 12) % e.cantidad;
+      return e;
+    }
     e.marco = e.destino;
-    e.elegida = e.destino;
-  } else {
-    e.marco = Math.floor((RULETA - e.ruleta) * 12) % e.cantidad;
+    e.resultado = RESULTADO;
+    return e;
+  }
+  if (e.resultado > 0) {
+    e.resultado = Math.max(0, e.resultado - dt);
+    if (e.resultado === 0) e.elegida = e.destino;
   }
   return e;
 }
