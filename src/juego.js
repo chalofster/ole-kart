@@ -11,7 +11,7 @@ const PANTALLAS = { inicio: pantallaInicio, seleccion: pantallaSeleccion, carrer
 export function crearJuego({ renderer, capa, entradas, sonido }) {
   const pista = crearPista(NOCHE);
   let actual = null;
-  const ctx = { renderer, capa, pista, mundo: crearMundo(pista), sonido, personajes: PERSONAJES, nombre: null };
+  const ctx = { renderer, capa, pista, pistaId: 'noche', mundo: crearMundo(pista), sonido, personajes: PERSONAJES, nombre: null };
   ctx.ir = (nombre, datos = {}) => {
     actual?.salir();
     capa.replaceChildren();

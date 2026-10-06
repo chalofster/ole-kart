@@ -4,6 +4,7 @@ import { crearSalida, actualizarSalida } from '../logica/pausa.js';
 import { ICONOS, TIPOS } from '../logica/objetos.js';
 import { crearCamara, seguir, dibujarVistas } from '../dibujo/camaras.js';
 import { el } from './dom.js';
+import { PARTITURAS } from '../sonido/partituras.js';
 
 const PASO = 1 / 60;
 
@@ -33,7 +34,7 @@ export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
   const aviso = el('div', 'aviso oculto');
   raiz.append(cuenta, aviso);
   ctx.capa.append(raiz);
-  sonido.musica(true);
+  sonido.musica(true, PARTITURAS[ctx.pistaId]);
 
   let acumulado = 0;
   let t = 0;

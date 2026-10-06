@@ -1,4 +1,5 @@
-import { notasDelPaso, SEMICORCHEA } from './musica.js';
+import { notasDelPaso, semicorchea } from './musica.js';
+import { NOCHE } from './partituras.js';
 
 export const frecuenciaMotor = (vel) => 55 + Math.abs(vel) * 5;
 
@@ -7,7 +8,7 @@ const SILENCIO = {
   ponerCancion() {}, hayCancion: () => false, cancionSonando: () => false, alFallarCancion() {},
 };
 
-// Todo se sintetiza con Web Audio; la música original está en musica.js.
+// Todo se sintetiza con Web Audio; las partituras de la música están en partituras.js.
 // En las carreras, una canción propia del computador puede reemplazar esa música.
 export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.webkitAudioContext) {
   if (!Contexto) return SILENCIO;
@@ -81,21 +82,25 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
   filtroBajo.type = 'lowpass';
   filtroBajo.frequency.value = 700;
   filtroBajo.connect(maestro);
+  // La batería suena siempre igual; bajo, acordes y melodía, como diga la partitura.
+  // En los acordes, rasgueo separa un poco cada nota, como una guitarra.
   const INSTRUMENTOS = {
     bombo: (n, t) => tono(150, 0.22, 'sine', 0.55, t, 45),
     palmas: (n, t) => ruido(0.1, 0.2, t),
     platillo: (n, t) => ruido(0.03, 0.05, t),
-    bajo: (n, t) => tono(n.frec, 0.2, 'sawtooth', 0.16, t, n.frec, filtroBajo),
-    acorde: (n, t) => n.frecs.forEach((f) => tono(f, 0.12, 'square', 0.03, t)),
-    melodia: (n, t) => tono(n.frec, 0.18, 'triangle', 0.1, t),
+    redoble: (n, t) => ruido(0.05, 0.12, t),
+    bajo: (n, t, s) => tono(n.frec, s.dur, s.onda, s.vol, t, n.frec, filtroBajo),
+    acorde: (n, t, s) => n.frecs.forEach((f, i) => tono(f, s.dur, s.onda, s.vol, t + i * (s.rasgueo ?? 0))),
+    melodia: (n, t, s) => tono(n.frec, s.dur, s.onda, s.vol, t),
   };
+  let partitura = NOCHE;
   let reloj = null;
   let siguiente = 0;
   let paso = 0;
   function programar() {
     while (siguiente < ctx.currentTime + 0.2) {
-      for (const n of notasDelPaso(paso)) INSTRUMENTOS[n.tipo](n, siguiente);
-      siguiente += SEMICORCHEA;
+      for (const n of notasDelPaso(partitura, paso)) INSTRUMENTOS[n.tipo](n, siguiente, partitura.sonidos[n.tipo]);
+      siguiente += semicorchea(partitura);
       paso += 1;
     }
   }
@@ -156,7 +161,9 @@ export function crearSonido(Contexto = globalThis.AudioContext ?? globalThis.web
     efecto(nombre) {
       EFECTOS[nombre]?.();
     },
-    musica(encender) {
+    // cual: la partitura de la pista. Si hay canción propia, suena ella en su lugar.
+    musica(encender, cual = NOCHE) {
+      if (encender) partitura = cual;
       if (encender === sonando) return;
       sonando = encender;
       if (encender) encenderMusica();
