@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MEDIO_ANCHO, VALLA, RAMPA, puntoEn } from '../logica/pista.js';
+import { limites } from '../logica/decorado.js';
 import { mate, brillo, malla } from './comun.js';
 
 // Cinta a lo largo de la pista: dos puntos por muestra, colores por vértice.
@@ -49,21 +50,23 @@ function rampa3D(pista, s, color) {
   return new THREE.Mesh(cuna, new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide }));
 }
 
-export function crearPista3D(pista) {
+// Suelo, camino, bordes, vallas, meta, flechas de turbo y rampas, con los colores del ambiente.
+export function crearPista3D(pista, ambiente) {
   const grupo = new THREE.Group();
 
-  const pasto = malla(new THREE.PlaneGeometry(1400, 1400), mate(0x1d3b2a), 95, 0, -75);
-  pasto.rotation.x = -Math.PI / 2;
-  grupo.add(pasto);
+  const b = limites(pista);
+  const suelo = malla(new THREE.PlaneGeometry(1400, 1400), mate(ambiente.suelo), (b.minX + b.maxX) / 2, 0, -(b.minY + b.maxY) / 2);
+  suelo.rotation.x = -Math.PI / 2;
+  grupo.add(suelo);
 
-  grupo.add(cinta(pista, (m) => [lado(m, -MEDIO_ANCHO, 0.03), lado(m, MEDIO_ANCHO, 0.03)], () => 0x55586a));
-  const solera = (i) => (Math.floor(i / 3) % 2 === 0 ? 0xd62828 : 0xf1f1f1);
+  grupo.add(cinta(pista, (m) => [lado(m, -MEDIO_ANCHO, 0.03), lado(m, MEDIO_ANCHO, 0.03)], () => ambiente.camino));
+  const solera = (i) => ambiente.bordes[Math.floor(i / 3) % 2];
   grupo.add(cinta(pista, (m) => [lado(m, MEDIO_ANCHO, 0.04), lado(m, MEDIO_ANCHO + 0.9, 0.04)], solera));
   grupo.add(cinta(pista, (m) => [lado(m, -MEDIO_ANCHO - 0.9, 0.04), lado(m, -MEDIO_ANCHO, 0.04)], solera));
-  const valla = (i) => (Math.floor(i / 4) % 2 === 0 ? 0xff9f1c : 0xfaf3dd);
+  const valla = (i) => ambiente.vallas[Math.floor(i / 4) % 2];
   for (const s of [1, -1]) grupo.add(cinta(pista, (m) => [lado(m, s * VALLA, 0), lado(m, s * VALLA, 0.9)], valla));
 
-  // Meta: cuadros blancos y negros y un arco con luces.
+  // Meta: cuadros blancos y negros, y encima el arco propio del ambiente.
   const cuadro = new THREE.PlaneGeometry(1, 1);
   for (let fila = 0; fila < 2; fila++) {
     for (let col = 0; col < 2 * MEDIO_ANCHO; col++) {
@@ -73,18 +76,7 @@ export function crearPista3D(pista) {
       grupo.add(m);
     }
   }
-  const arco = new THREE.Group();
-  const pm = puntoEn(pista, 1);
-  arco.position.set(pm.x, 0, -pm.y);
-  arco.rotation.y = pm.rumbo;
-  // Dentro del arco, el eje z local apunta a la derecha: lateral izquierdo = z negativo.
-  for (const z of [VALLA - 0.5, -(VALLA - 0.5)]) arco.add(malla(new THREE.CylinderGeometry(0.35, 0.35, 6.5), mate(0x333344), 0, 3.25, z));
-  arco.add(malla(new THREE.BoxGeometry(0.8, 0.8, 2 * VALLA), mate(0x333344), 0, 6.5, 0));
-  const foco = new THREE.SphereGeometry(0.25, 8, 6);
-  for (let z = -VALLA + 1; z <= VALLA - 1; z += 1.5) {
-    arco.add(malla(foco, brillo(Math.round(z) % 2 ? 0xffd166 : 0xff4d6d), 0.45, 6.5, z));
-  }
-  grupo.add(arco);
+  grupo.add(ambiente.meta(pista));
 
   // Flechas de turbo, naranjas y brillantes, apuntando hacia adelante.
   const forma = new THREE.Shape();
@@ -109,7 +101,6 @@ export function crearPista3D(pista) {
     }
   }
 
-  for (const s of pista.rampas) grupo.add(rampa3D(pista, s, 0xffd166));
-
+  for (const s of pista.rampas) grupo.add(rampa3D(pista, s, ambiente.rampa));
   return grupo;
 }

@@ -1,6 +1,5 @@
-import { crearPista, NOCHE } from './logica/pista.js';
 import { PERSONAJES } from './logica/personajes.js';
-import { crearMundo } from './dibujo/escena.js';
+import { crearMundos } from './dibujo/mundos.js';
 import { pantallaInicio } from './pantallas/inicio.js';
 import { pantallaSeleccion } from './pantallas/seleccion.js';
 import { pantallaCarrera } from './pantallas/carrera.js';
@@ -9,9 +8,15 @@ import { pantallaPodio } from './pantallas/podio.js';
 const PANTALLAS = { inicio: pantallaInicio, seleccion: pantallaSeleccion, carrera: pantallaCarrera, podio: pantallaPodio };
 
 export function crearJuego({ renderer, capa, entradas, sonido }) {
-  const pista = crearPista(NOCHE);
   let actual = null;
-  const ctx = { renderer, capa, pista, pistaId: 'noche', mundo: crearMundo(pista), sonido, personajes: PERSONAJES, nombre: null };
+  const mundos = crearMundos();
+  const ctx = { renderer, capa, sonido, personajes: PERSONAJES, nombre: null };
+  // Arma la pista elegida (y libera la anterior). Cada pantalla toma ctx.pista y ctx.mundo al empezar.
+  ctx.usarPista = (id) => {
+    const { pista, mundo } = mundos.usar(id);
+    Object.assign(ctx, { pistaId: id, pista, mundo });
+  };
+  ctx.usarPista('noche');
   ctx.ir = (nombre, datos = {}) => {
     actual?.salir();
     capa.replaceChildren();

@@ -10,3 +10,10 @@ export function lugaresLibres(pista, { cada, distancia, holgura, lado }) {
   }
   return lugares;
 }
+
+// Rectángulo que encierra el recorrido: para centrar el suelo y ubicar lo que va lejos (noria, mar, faro).
+export function limites(pista) {
+  const xs = pista.muestras.map((m) => m.x);
+  const ys = pista.muestras.map((m) => m.y);
+  return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
+}

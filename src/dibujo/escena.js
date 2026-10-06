@@ -1,18 +1,23 @@
 import * as THREE from 'three';
 import { crearPista3D } from './pista3d.js';
-import { crearDecorado } from './decorado3d.js';
-import { crearKart3D } from './kart3d.js';
-import { crearObjetos3D } from './objetos3d.js';
+import { crearKart3D, GEOMETRIAS_KART } from './kart3d.js';
+import { crearObjetos3D, GEOMETRIAS_OBJETOS } from './objetos3d.js';
+import { soltar } from './comun.js';
 
-export function crearMundo(pista) {
+const COMPARTIDAS = new Set([...GEOMETRIAS_KART, ...GEOMETRIAS_OBJETOS]);
+
+// El mundo de una pista: cielo, luz y neblina del ambiente, la pista, su decorado, los karts y los objetos.
+export function crearMundo(pista, ambiente) {
   const escena = new THREE.Scene();
-  escena.background = new THREE.Color(0x0b1026);
-  escena.fog = new THREE.Fog(0x0b1026, 70, 230);
-  escena.add(new THREE.HemisphereLight(0x8fa3ff, 0x1d3b2a, 1.1));
-  const luna = new THREE.DirectionalLight(0xdfe7ff, 1.2);
-  luna.position.set(-250, 160, -380);
-  escena.add(luna);
-  escena.add(crearPista3D(pista), crearDecorado(pista));
+  escena.background = new THREE.Color(ambiente.cielo);
+  const { niebla, luz } = ambiente;
+  escena.fog = new THREE.Fog(niebla.color, niebla.cerca, niebla.lejos);
+  escena.add(new THREE.HemisphereLight(luz.cielo, luz.suelo, luz.intensidad));
+  const sol = new THREE.DirectionalLight(luz.sol, luz.solIntensidad);
+  sol.position.set(...luz.solPos);
+  escena.add(sol);
+  const decorado = ambiente.decorado(pista);
+  escena.add(crearPista3D(pista, ambiente), decorado);
   let karts = [];
   let objetos = null;
   return {
@@ -32,10 +37,15 @@ export function crearMundo(pista) {
       objetos = crearObjetos3D(estado);
       escena.add(objetos.grupo);
     },
-    // dt: tiempo del dibujo (0 en pausa). eventos[i]: lo que le pasó al kart i en este cuadro.
+    // t y dt: tiempo del dibujo (dt vale 0 en pausa). eventos[i]: lo que le pasó al kart i en este cuadro.
     actualizar(carrera, t, dt = 0, eventos = null) {
       carrera.karts.forEach((k, i) => karts[i].sincronizar(k, t, dt, eventos?.[i] ?? []));
       objetos?.actualizar(carrera.objetos, t);
+      decorado.actualizar?.(t);
+    },
+    // Libera todo lo que armó este mundo, salvo las figuras que comparten todos los karts y objetos.
+    soltar() {
+      soltar(escena, COMPARTIDAS);
     },
   };
 }

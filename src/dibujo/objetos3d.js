@@ -7,6 +7,8 @@ const bola = new THREE.SphereGeometry(0.7, 12, 10);
 const tallo = new THREE.CylinderGeometry(0.08, 0.1, 0.35);
 const ojo = new THREE.SphereGeometry(0.1, 6, 6);
 const curva = new THREE.TorusGeometry(0.5, 0.18, 6, 12, Math.PI * 1.2);
+// Figuras que comparten las cajas, calabazas y cáscaras de todas las carreras: no se liberan al cambiar de pista.
+export const GEOMETRIAS_OBJETOS = new Set([cubo, bola, tallo, ojo, curva]);
 
 function calabaza3D() {
   const g = new THREE.Group();

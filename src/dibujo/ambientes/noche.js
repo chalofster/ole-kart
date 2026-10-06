@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { lugaresLibres } from '../logica/decorado.js';
-import { mate, brillo, malla } from './comun.js';
+import { lugaresLibres } from '../../logica/decorado.js';
+import { VALLA, puntoEn } from '../../logica/pista.js';
+import { mate, brillo, malla } from '../comun.js';
 
 // Barrio de noche: casas con ventanas encendidas, faroles, calabazas sonrientes, luna y estrellas.
-export function crearDecorado(pista, azar = Math.random) {
+function decorado(pista, azar = Math.random) {
   const g = new THREE.Group();
 
   const colores = [0x6d597a, 0x355070, 0xb56576, 0x4a4e69, 0x7f5539];
@@ -64,3 +65,32 @@ export function crearDecorado(pista, azar = Math.random) {
   g.add(new THREE.Points(cielo, new THREE.PointsMaterial({ color: 0xffffff, size: 2, sizeAttenuation: false, fog: false })));
   return g;
 }
+
+// Arco de meta con luces (antes estaba en pista3d.js).
+function meta(pista) {
+  const arco = new THREE.Group();
+  const pm = puntoEn(pista, 1);
+  arco.position.set(pm.x, 0, -pm.y);
+  arco.rotation.y = pm.rumbo;
+  // Dentro del arco, el eje z local apunta a la derecha: lateral izquierdo = z negativo.
+  for (const z of [VALLA - 0.5, -(VALLA - 0.5)]) arco.add(malla(new THREE.CylinderGeometry(0.35, 0.35, 6.5), mate(0x333344), 0, 3.25, z));
+  arco.add(malla(new THREE.BoxGeometry(0.8, 0.8, 2 * VALLA), mate(0x333344), 0, 6.5, 0));
+  const foco = new THREE.SphereGeometry(0.25, 8, 6);
+  for (let z = -VALLA + 1; z <= VALLA - 1; z += 1.5) {
+    arco.add(malla(foco, brillo(Math.round(z) % 2 ? 0xffd166 : 0xff4d6d), 0.45, 6.5, z));
+  }
+  return arco;
+}
+
+export const NOCHE = {
+  cielo: 0x0b1026,
+  niebla: { color: 0x0b1026, cerca: 70, lejos: 230 },
+  luz: { cielo: 0x8fa3ff, suelo: 0x1d3b2a, intensidad: 1.1, sol: 0xdfe7ff, solIntensidad: 1.2, solPos: [-250, 160, -380] },
+  suelo: 0x1d3b2a,
+  camino: 0x55586a,
+  bordes: [0xd62828, 0xf1f1f1],
+  vallas: [0xff9f1c, 0xfaf3dd],
+  rampa: 0xffd166,
+  meta,
+  decorado,
+};

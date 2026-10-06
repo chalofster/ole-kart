@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { crearPista, NOCHE } from '../src/logica/pista.js';
-import { lugaresLibres } from '../src/logica/decorado.js';
+import { lugaresLibres, limites } from '../src/logica/decorado.js';
 
 const pista = crearPista(NOCHE);
 const distanciaMinima = (p) => Math.min(...pista.muestras.map((m) => Math.hypot(m.x - p.x, m.y - p.y)));
@@ -15,5 +15,16 @@ describe('lugaresLibres', () => {
   it('descarta los lugares que pisan otra parte de la pista', () => {
     const adentro = lugaresLibres(pista, { cada: 32, distancia: 24, holgura: 18, lado: 1 });
     expect(adentro.length).toBeLessThan(Math.ceil(pista.largo / 32));
+  });
+
+  it('limites encierra todo el recorrido', () => {
+    const b = limites(pista);
+    for (const m of pista.muestras) {
+      expect(m.x).toBeGreaterThanOrEqual(b.minX);
+      expect(m.x).toBeLessThanOrEqual(b.maxX);
+      expect(m.y).toBeGreaterThanOrEqual(b.minY);
+      expect(m.y).toBeLessThanOrEqual(b.maxY);
+    }
+    expect(b.minX).toBeCloseTo(Math.min(...pista.muestras.map((m) => m.x)), 9);
   });
 });
