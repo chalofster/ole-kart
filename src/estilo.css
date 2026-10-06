@@ -33,3 +33,12 @@ html, body { margin: 0; height: 100%; background: #0b1026; overflow: hidden; fon
 .fila { font-size: 6vh; background: rgba(11, 16, 38, 0.8); border-radius: 2vh; padding: 1vh 1.5vh; border: 0.6vh solid transparent; display: flex; flex-direction: column; align-items: center; }
 .numero { font-size: 4vh; font-weight: 900; color: #ffd166; }
 .podio .opcion { width: 14vh; height: 14vh; font-size: 8vh; }
+
+.opciones.pista { gap: 2vw; }
+.tarjeta { width: 26vh; height: 28vh; flex-direction: column; gap: 0.6vh; font-size: 6vh; border-radius: 3vh; }
+.tarjeta svg { width: 23vh; height: 14.4vh; }
+.tarjeta .icono { line-height: 1; }
+.tarjeta .nombre { font-size: 2.3vh; font-weight: 700; text-shadow: 0 0.2vh 0 #000; }
+.tarjeta .dado { font-size: 12vh; }
+.podio .tarjeta { width: 22vh; height: 24vh; font-size: 5vh; }
+.podio .tarjeta svg { width: 19vh; height: 11.9vh; }

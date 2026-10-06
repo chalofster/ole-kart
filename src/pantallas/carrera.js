@@ -10,6 +10,8 @@ const PASO = 1 / 60;
 
 export function pantallaCarrera(ctx, { jugadores, clase = 1 }) {
   const { pista, mundo, personajes, sonido } = ctx;
+  // Para el menú: el marco de pista parte aquí y 🎲 no la repite.
+  ctx.ultimaCorrida = ctx.pistaId;
   // Los niños parten en las últimas posiciones de la parrilla, como en Mario Kart.
   const elegidos = jugadores.map((j) => j.personaje);
   const resto = personajes.map((p) => p.id).filter((id) => !elegidos.includes(id));
